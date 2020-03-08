@@ -3,7 +3,7 @@ syntax = "proto2";
 package ds.hdfs;
 
 option java_package = "ds.hdfs";
-option java_outer_classname = "DataProto";
+option java_outer_classname = "hdfsformat";
 
 message Data {
     required string name = 1;

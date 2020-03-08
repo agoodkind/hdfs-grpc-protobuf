@@ -3,8 +3,8 @@
 
 package ds.hdfs;
 
-public final class DataProto {
-  private DataProto() {}
+public final class hdfsformat {
+  private hdfsformat() {}
   public static void registerAllExtensions(
       com.google.protobuf.ExtensionRegistryLite registry) {
   }
@@ -126,15 +126,15 @@ public final class DataProto {
     }
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return ds.hdfs.DataProto.internal_static_ds_hdfs_Data_descriptor;
+      return ds.hdfs.hdfsformat.internal_static_ds_hdfs_Data_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return ds.hdfs.DataProto.internal_static_ds_hdfs_Data_fieldAccessorTable
+      return ds.hdfs.hdfsformat.internal_static_ds_hdfs_Data_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              ds.hdfs.DataProto.Data.class, ds.hdfs.DataProto.Data.Builder.class);
+              ds.hdfs.hdfsformat.Data.class, ds.hdfs.hdfsformat.Data.Builder.class);
     }
 
     private int bitField0_;
@@ -254,10 +254,10 @@ public final class DataProto {
       if (obj == this) {
        return true;
       }
-      if (!(obj instanceof ds.hdfs.DataProto.Data)) {
+      if (!(obj instanceof ds.hdfs.hdfsformat.Data)) {
         return super.equals(obj);
       }
-      ds.hdfs.DataProto.Data other = (ds.hdfs.DataProto.Data) obj;
+      ds.hdfs.hdfsformat.Data other = (ds.hdfs.hdfsformat.Data) obj;
 
       if (hasName() != other.hasName()) return false;
       if (hasName()) {
@@ -293,69 +293,69 @@ public final class DataProto {
       return hash;
     }
 
-    public static ds.hdfs.DataProto.Data parseFrom(
+    public static ds.hdfs.hdfsformat.Data parseFrom(
         java.nio.ByteBuffer data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static ds.hdfs.DataProto.Data parseFrom(
+    public static ds.hdfs.hdfsformat.Data parseFrom(
         java.nio.ByteBuffer data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static ds.hdfs.DataProto.Data parseFrom(
+    public static ds.hdfs.hdfsformat.Data parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static ds.hdfs.DataProto.Data parseFrom(
+    public static ds.hdfs.hdfsformat.Data parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static ds.hdfs.DataProto.Data parseFrom(byte[] data)
+    public static ds.hdfs.hdfsformat.Data parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static ds.hdfs.DataProto.Data parseFrom(
+    public static ds.hdfs.hdfsformat.Data parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static ds.hdfs.DataProto.Data parseFrom(java.io.InputStream input)
+    public static ds.hdfs.hdfsformat.Data parseFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseWithIOException(PARSER, input);
     }
-    public static ds.hdfs.DataProto.Data parseFrom(
+    public static ds.hdfs.hdfsformat.Data parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
-    public static ds.hdfs.DataProto.Data parseDelimitedFrom(java.io.InputStream input)
+    public static ds.hdfs.hdfsformat.Data parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseDelimitedWithIOException(PARSER, input);
     }
-    public static ds.hdfs.DataProto.Data parseDelimitedFrom(
+    public static ds.hdfs.hdfsformat.Data parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
-    public static ds.hdfs.DataProto.Data parseFrom(
+    public static ds.hdfs.hdfsformat.Data parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseWithIOException(PARSER, input);
     }
-    public static ds.hdfs.DataProto.Data parseFrom(
+    public static ds.hdfs.hdfsformat.Data parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -368,7 +368,7 @@ public final class DataProto {
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
     }
-    public static Builder newBuilder(ds.hdfs.DataProto.Data prototype) {
+    public static Builder newBuilder(ds.hdfs.hdfsformat.Data prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
     @java.lang.Override
@@ -389,21 +389,21 @@ public final class DataProto {
     public static final class Builder extends
         com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
         // @@protoc_insertion_point(builder_implements:ds.hdfs.Data)
-        ds.hdfs.DataProto.DataOrBuilder {
+        ds.hdfs.hdfsformat.DataOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
-        return ds.hdfs.DataProto.internal_static_ds_hdfs_Data_descriptor;
+        return ds.hdfs.hdfsformat.internal_static_ds_hdfs_Data_descriptor;
       }
 
       @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return ds.hdfs.DataProto.internal_static_ds_hdfs_Data_fieldAccessorTable
+        return ds.hdfs.hdfsformat.internal_static_ds_hdfs_Data_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
-                ds.hdfs.DataProto.Data.class, ds.hdfs.DataProto.Data.Builder.class);
+                ds.hdfs.hdfsformat.Data.class, ds.hdfs.hdfsformat.Data.Builder.class);
       }
 
-      // Construct using ds.hdfs.DataProto.Data.newBuilder()
+      // Construct using ds.hdfs.hdfsformat.Data.newBuilder()
       private Builder() {
         maybeForceBuilderInitialization();
       }
@@ -431,17 +431,17 @@ public final class DataProto {
       @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return ds.hdfs.DataProto.internal_static_ds_hdfs_Data_descriptor;
+        return ds.hdfs.hdfsformat.internal_static_ds_hdfs_Data_descriptor;
       }
 
       @java.lang.Override
-      public ds.hdfs.DataProto.Data getDefaultInstanceForType() {
-        return ds.hdfs.DataProto.Data.getDefaultInstance();
+      public ds.hdfs.hdfsformat.Data getDefaultInstanceForType() {
+        return ds.hdfs.hdfsformat.Data.getDefaultInstance();
       }
 
       @java.lang.Override
-      public ds.hdfs.DataProto.Data build() {
-        ds.hdfs.DataProto.Data result = buildPartial();
+      public ds.hdfs.hdfsformat.Data build() {
+        ds.hdfs.hdfsformat.Data result = buildPartial();
         if (!result.isInitialized()) {
           throw newUninitializedMessageException(result);
         }
@@ -449,8 +449,8 @@ public final class DataProto {
       }
 
       @java.lang.Override
-      public ds.hdfs.DataProto.Data buildPartial() {
-        ds.hdfs.DataProto.Data result = new ds.hdfs.DataProto.Data(this);
+      public ds.hdfs.hdfsformat.Data buildPartial() {
+        ds.hdfs.hdfsformat.Data result = new ds.hdfs.hdfsformat.Data(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
         if (((from_bitField0_ & 0x00000001) != 0)) {
@@ -500,16 +500,16 @@ public final class DataProto {
       }
       @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof ds.hdfs.DataProto.Data) {
-          return mergeFrom((ds.hdfs.DataProto.Data)other);
+        if (other instanceof ds.hdfs.hdfsformat.Data) {
+          return mergeFrom((ds.hdfs.hdfsformat.Data)other);
         } else {
           super.mergeFrom(other);
           return this;
         }
       }
 
-      public Builder mergeFrom(ds.hdfs.DataProto.Data other) {
-        if (other == ds.hdfs.DataProto.Data.getDefaultInstance()) return this;
+      public Builder mergeFrom(ds.hdfs.hdfsformat.Data other) {
+        if (other == ds.hdfs.hdfsformat.Data.getDefaultInstance()) return this;
         if (other.hasName()) {
           bitField0_ |= 0x00000001;
           name_ = other.name_;
@@ -539,11 +539,11 @@ public final class DataProto {
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws java.io.IOException {
-        ds.hdfs.DataProto.Data parsedMessage = null;
+        ds.hdfs.hdfsformat.Data parsedMessage = null;
         try {
           parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
         } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          parsedMessage = (ds.hdfs.DataProto.Data) e.getUnfinishedMessage();
+          parsedMessage = (ds.hdfs.hdfsformat.Data) e.getUnfinishedMessage();
           throw e.unwrapIOException();
         } finally {
           if (parsedMessage != null) {
@@ -694,12 +694,12 @@ public final class DataProto {
     }
 
     // @@protoc_insertion_point(class_scope:ds.hdfs.Data)
-    private static final ds.hdfs.DataProto.Data DEFAULT_INSTANCE;
+    private static final ds.hdfs.hdfsformat.Data DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new ds.hdfs.DataProto.Data();
+      DEFAULT_INSTANCE = new ds.hdfs.hdfsformat.Data();
     }
 
-    public static ds.hdfs.DataProto.Data getDefaultInstance() {
+    public static ds.hdfs.hdfsformat.Data getDefaultInstance() {
       return DEFAULT_INSTANCE;
     }
 
@@ -724,7 +724,7 @@ public final class DataProto {
     }
 
     @java.lang.Override
-    public ds.hdfs.DataProto.Data getDefaultInstanceForType() {
+    public ds.hdfs.hdfsformat.Data getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
@@ -745,8 +745,8 @@ public final class DataProto {
   static {
     java.lang.String[] descriptorData = {
       "\n\nhdfs.proto\022\007ds.hdfs\"&\n\004Data\022\014\n\004name\030\001 " +
-      "\002(\t\022\020\n\010contents\030\002 \002(\014B\024\n\007ds.hdfsB\tDataPr" +
-      "oto"
+      "\002(\t\022\020\n\010contents\030\002 \002(\014B\025\n\007ds.hdfsB\nhdfsfo" +
+      "rmat"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
