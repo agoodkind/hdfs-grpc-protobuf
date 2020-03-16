@@ -1,8 +1,10 @@
 curdir:=$(shell pwd)
 classpath:=$(curdir)/lib/*.jar
 out:=$(curdir)/bin
-sources:=$(curdir)/src/ds/hdfs/*.java
-#javarunprefix="java -classpath $classpath:$out"
+hdfs_sources:=$(curdir)/src/ds/hdfs/*.java
 
-all:
-	javac -d $(out) -cp $(classpath) $(sources)
+all: hdfs mapreduce
+
+hdfs:
+	javac -d $(out) -cp $(classpath) $(hdfs_sources)
+mapreduce:
