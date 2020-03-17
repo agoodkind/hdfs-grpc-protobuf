@@ -4,20 +4,22 @@ package ds.hdfs.test;
 
 option java_generic_services = false;
 option java_multiple_files = true;
-option java_package = "ds.hdfs.test";
-option java_outer_classname = "TestProto";
+option java_package = "ds.hdfs.nodes";
+option java_outer_classname = "HDFSNodes";
 
 // The greeting service definition.
-service TestService {
-    rpc TestThisService (TestRequest) returns (TestReply) {}
+service NameNode {
+    rpc SaveFile (FileRequest) returns (MetaDataResponse) {}
+
+    rpc ReadFile (FileRequest) returns (MetaDataResponse) {}
 }
 
 // The request message containing the user's name.
-message TestRequest {
-    string test_request_field = 1;
+message FileRequest {
+    string file_name = 1;
 }
 
 // The response message containing the greetings
-message TestReply {
-    string test_reply_field = 1;
+message MetaDataResponse {
+    string file_location = 1;
 }
