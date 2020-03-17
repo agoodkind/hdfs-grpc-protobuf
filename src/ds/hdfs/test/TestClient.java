@@ -1,12 +1,11 @@
 package ds.hdfs.test;
 
 import com.google.protobuf.BlockingRpcChannel;
+import ds.hdfs.test.TestService;
 import io.grpc.Channel;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
-import io.grpc.stub.StreamObserver;
-import ds.hdfs.test.TestReply;
 
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;

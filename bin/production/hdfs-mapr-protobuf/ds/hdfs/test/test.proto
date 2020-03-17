@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package ds.hdfs.test;
+
+option java_generic_services = false;
+option java_multiple_files = true;
+option java_package = "ds.hdfs.test";
+option java_outer_classname = "TestProto";
+
+// The greeting service definition.
+service TestService {
+    rpc TestThisService (TestRequest) returns (TestReply) {}
+}
+
+// The request message containing the user's name.
+message TestRequest {
+    string test_request_field = 1;
+}
+
+// The response message containing the greetings
+message TestReply {
+    string test_reply_field = 1;
+}

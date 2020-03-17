@@ -1,0 +1,11 @@
+syntax = "proto2";
+
+package ds.hdfs;
+
+option java_package = "ds.hdfs.generated";
+option java_outer_classname = "DataFormat";
+
+message Data {
+    required string name = 1;
+    required bytes contents = 2;
+}
