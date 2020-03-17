@@ -1,15 +1,10 @@
 package ds.hdfs;
 import java.net.UnknownHostException;
-import java.rmi.*;
 import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
-import java.rmi.server.UnicastRemoteObject;
 import java.rmi.registry.Registry;
 import java.rmi.RemoteException;
 import java.util.*;
 import java.io.*;
-import ds.hdfs.hdfsformat.*;
-import com.google.protobuf.ByteString; 
 //import ds.hdfs.INameNode;
 
 public class Client

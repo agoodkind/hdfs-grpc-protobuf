@@ -1,5 +1,5 @@
 curdir:=$(shell pwd)
-classpath:=$(curdir)/lib/*.jar
+classpath:="$(curdir)/lib/*"
 out:=$(curdir)/bin
 hdfs_sources:=$(curdir)/src/ds/hdfs/*.java
 
