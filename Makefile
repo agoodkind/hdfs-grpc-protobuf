@@ -15,3 +15,6 @@ proto:
 	chmod +x $(protoc_grpc_plugin)
 	protoc --plugin=protoc-gen-grpc-java=$(protoc_grpc_plugin) --grpc-java_out=src --proto_path=$(proto_sources) --java_out=src $(proto_sources)/hdfsformat.proto
 test:
+
+clean:
+	rm -rf $(curdir)/bin/* $(curdir)/persist/*
