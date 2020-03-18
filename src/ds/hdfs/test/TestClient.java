@@ -1,7 +1,6 @@
 package ds.hdfs.test;
 
 import com.google.protobuf.BlockingRpcChannel;
-import ds.hdfs.test.TestService;
 import io.grpc.Channel;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -13,7 +12,7 @@ import java.util.logging.Logger;
 
 public class TestClient {
     private static final Logger logger = Logger.getLogger(TestClient.class.getName());
-    private final TestService.BlockingStub blockingStub;
+    private final TestServiceGrpc.TestServiceBlockingStub blockingStub;
 
     /** Construct client for accessing HelloWorld server using the existing channel. */
     public TestClient(Channel channel) {
@@ -21,12 +20,12 @@ public class TestClient {
         // shut it down.
 
         // Passing Channels to code makes code easier to test and makes it easier to reuse Channels.
-        blockingStub = (TestService.BlockingStub) TestService.newBlockingStub((BlockingRpcChannel) channel);
+        blockingStub = TestServiceGrpc.newBlockingStub(channel);
     }
 
 
     public void testClientMethod(String testString) {
-        logger.info("Will try to greet " + testString + " ...");
+        logger.info("sending this test string " + testString + " ...");
         TestRequest request = TestRequest.newBuilder().setTestRequestField(testString).build();
         TestReply response;
         try {

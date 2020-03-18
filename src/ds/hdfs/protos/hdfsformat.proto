@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package ds.hdfs;
+
+option java_generic_services = false;
+option java_multiple_files = true;
+option java_package = "ds.hdfs.generated";
+option java_outer_classname = "HDFSFormat";
+
+service NameNode {
+    // used by the DataNodes
+    rpc heartBeat (BlockReport) returns (Status) {};
+    // used by the Client
+    rpc assignBlocks (FileMetadata) returns (BlockLocationMapping) {};
+    // used by the Client
+    rpc getBlockLocations (FileMetadata) returns (BlockLocationMapping) {};
+}
+
+service DataNode {
+    // used by the Client
+    rpc readBlock (BlockMetadata) returns (Status) {};
+    rpc writeBlock (Block) returns (Status) {};
+}
+
+message Status {
+    bool success = 1;
+}
+
+message Block {
+    BlockMetadata block_info = 1;
+    bytes content = 2;
+}
+
+message FileMetadata {
+    string name = 1;
+    int32 size = 2;
+}
+
+message BlockMetadata {
+    int32 index = 1;
+    int32 block_size = 2;
+    string file_name = 3;
+}
+
+
+message DataNodeInfo {
+    string ip = 1;
+    int32 port = 2;
+}
+
+message BlockLocation {
+    DataNodeInfo data_node_info = 1;
+    BlockMetadata block_info = 2;
+}
+
+message BlockLocationMapping {
+    repeated BlockLocation mapping = 1;
+}
+
+message BlockReport {
+    DataNodeInfo data_node_info = 1;
+    repeated BlockMetadata blocks = 2;
+}
