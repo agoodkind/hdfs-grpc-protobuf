@@ -1,10 +1,10 @@
 syntax = "proto3";
 
-package ds.hdfs.test;
+package example.test;
 
 option java_generic_services = false;
 option java_multiple_files = true;
-option java_package = "ds.hdfs.test";
+option java_package = "example.test";
 option java_outer_classname = "TestProto";
 
 // The greeting service definition.

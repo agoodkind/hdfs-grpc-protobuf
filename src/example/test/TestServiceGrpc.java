@@ -1,18 +1,11 @@
-package ds.hdfs.test;
+package example.test;
 
 import static io.grpc.MethodDescriptor.generateFullMethodName;
-import static io.grpc.stub.ClientCalls.asyncBidiStreamingCall;
-import static io.grpc.stub.ClientCalls.asyncClientStreamingCall;
-import static io.grpc.stub.ClientCalls.asyncServerStreamingCall;
 import static io.grpc.stub.ClientCalls.asyncUnaryCall;
 import static io.grpc.stub.ClientCalls.blockingServerStreamingCall;
 import static io.grpc.stub.ClientCalls.blockingUnaryCall;
 import static io.grpc.stub.ClientCalls.futureUnaryCall;
-import static io.grpc.stub.ServerCalls.asyncBidiStreamingCall;
-import static io.grpc.stub.ServerCalls.asyncClientStreamingCall;
-import static io.grpc.stub.ServerCalls.asyncServerStreamingCall;
 import static io.grpc.stub.ServerCalls.asyncUnaryCall;
-import static io.grpc.stub.ServerCalls.asyncUnimplementedStreamingCall;
 import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
 
 /**
@@ -27,32 +20,32 @@ public final class TestServiceGrpc {
 
   private TestServiceGrpc() {}
 
-  public static final String SERVICE_NAME = "ds.hdfs.test.TestService";
+  public static final String SERVICE_NAME = "example.test.TestService";
 
   // Static method descriptors that strictly reflect the proto.
-  private static volatile io.grpc.MethodDescriptor<ds.hdfs.test.TestRequest,
-      ds.hdfs.test.TestReply> getTestThisServiceMethod;
+  private static volatile io.grpc.MethodDescriptor<example.test.TestRequest,
+      example.test.TestReply> getTestThisServiceMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "TestThisService",
-      requestType = ds.hdfs.test.TestRequest.class,
-      responseType = ds.hdfs.test.TestReply.class,
+      requestType = example.test.TestRequest.class,
+      responseType = example.test.TestReply.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<ds.hdfs.test.TestRequest,
-      ds.hdfs.test.TestReply> getTestThisServiceMethod() {
-    io.grpc.MethodDescriptor<ds.hdfs.test.TestRequest, ds.hdfs.test.TestReply> getTestThisServiceMethod;
+  public static io.grpc.MethodDescriptor<example.test.TestRequest,
+      example.test.TestReply> getTestThisServiceMethod() {
+    io.grpc.MethodDescriptor<example.test.TestRequest, example.test.TestReply> getTestThisServiceMethod;
     if ((getTestThisServiceMethod = TestServiceGrpc.getTestThisServiceMethod) == null) {
       synchronized (TestServiceGrpc.class) {
         if ((getTestThisServiceMethod = TestServiceGrpc.getTestThisServiceMethod) == null) {
           TestServiceGrpc.getTestThisServiceMethod = getTestThisServiceMethod =
-              io.grpc.MethodDescriptor.<ds.hdfs.test.TestRequest, ds.hdfs.test.TestReply>newBuilder()
+              io.grpc.MethodDescriptor.<example.test.TestRequest, example.test.TestReply>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "TestThisService"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  ds.hdfs.test.TestRequest.getDefaultInstance()))
+                  example.test.TestRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  ds.hdfs.test.TestReply.getDefaultInstance()))
+                  example.test.TestReply.getDefaultInstance()))
               .setSchemaDescriptor(new TestServiceMethodDescriptorSupplier("TestThisService"))
               .build();
         }
@@ -114,8 +107,8 @@ public final class TestServiceGrpc {
 
     /**
      */
-    public void testThisService(ds.hdfs.test.TestRequest request,
-        io.grpc.stub.StreamObserver<ds.hdfs.test.TestReply> responseObserver) {
+    public void testThisService(example.test.TestRequest request,
+                                io.grpc.stub.StreamObserver<example.test.TestReply> responseObserver) {
       asyncUnimplementedUnaryCall(getTestThisServiceMethod(), responseObserver);
     }
 
@@ -125,8 +118,8 @@ public final class TestServiceGrpc {
             getTestThisServiceMethod(),
             asyncUnaryCall(
               new MethodHandlers<
-                ds.hdfs.test.TestRequest,
-                ds.hdfs.test.TestReply>(
+                example.test.TestRequest,
+                example.test.TestReply>(
                   this, METHODID_TEST_THIS_SERVICE)))
           .build();
     }
@@ -151,8 +144,8 @@ public final class TestServiceGrpc {
 
     /**
      */
-    public void testThisService(ds.hdfs.test.TestRequest request,
-        io.grpc.stub.StreamObserver<ds.hdfs.test.TestReply> responseObserver) {
+    public void testThisService(example.test.TestRequest request,
+                                io.grpc.stub.StreamObserver<example.test.TestReply> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getTestThisServiceMethod(), getCallOptions()), request, responseObserver);
     }
@@ -177,7 +170,7 @@ public final class TestServiceGrpc {
 
     /**
      */
-    public ds.hdfs.test.TestReply testThisService(ds.hdfs.test.TestRequest request) {
+    public example.test.TestReply testThisService(example.test.TestRequest request) {
       return blockingUnaryCall(
           getChannel(), getTestThisServiceMethod(), getCallOptions(), request);
     }
@@ -202,8 +195,8 @@ public final class TestServiceGrpc {
 
     /**
      */
-    public com.google.common.util.concurrent.ListenableFuture<ds.hdfs.test.TestReply> testThisService(
-        ds.hdfs.test.TestRequest request) {
+    public com.google.common.util.concurrent.ListenableFuture<example.test.TestReply> testThisService(
+        example.test.TestRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getTestThisServiceMethod(), getCallOptions()), request);
     }
@@ -229,8 +222,8 @@ public final class TestServiceGrpc {
     public void invoke(Req request, io.grpc.stub.StreamObserver<Resp> responseObserver) {
       switch (methodId) {
         case METHODID_TEST_THIS_SERVICE:
-          serviceImpl.testThisService((ds.hdfs.test.TestRequest) request,
-              (io.grpc.stub.StreamObserver<ds.hdfs.test.TestReply>) responseObserver);
+          serviceImpl.testThisService((example.test.TestRequest) request,
+              (io.grpc.stub.StreamObserver<example.test.TestReply>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -254,7 +247,7 @@ public final class TestServiceGrpc {
 
     @java.lang.Override
     public com.google.protobuf.Descriptors.FileDescriptor getFileDescriptor() {
-      return ds.hdfs.test.TestProto.getDescriptor();
+      return example.test.TestProto.getDescriptor();
     }
 
     @java.lang.Override
