@@ -42,7 +42,6 @@ message BlockMetadata {
     string file_name = 3;
 }
 
-
 message DataNodeInfo {
     string ip = 1;
     int32 port = 2;

@@ -17,7 +17,9 @@ import java.util.logging.Logger;
 public class Client {
     private final NameNodeGrpc.NameNodeBlockingStub blockingStub;
 
-    /** Construct client for accessing HelloWorld server using the existing channel. */
+    /**
+     * Construct client for accessing HelloWorld server using the existing channel.
+     */
     public Client(Channel channel) {
         // 'channel' here is a Channel, not a ManagedChannel, so it is not this code's responsibility to
         // shut it down.
@@ -31,13 +33,14 @@ public class Client {
     }
 
     private void put(String fileName) {
-        FileMetadata request = NameNode.SingleFile
-                .parseMetadataFromFile(fileName)
-                .getFileMetadata();
+        FileMetadata request = FileMetadata.newBuilder()
+                .setSize(128)
+                .setName(fileName)
+                .build();
 
         try {
             BlockLocationMapping response = blockingStub.assignBlocks(request);
-            System.out.println(response);
+            System.out.println(response.getMappingList());
             if (response.getMappingList().size() < 1) {
                 throw new RuntimeException("Invalid response");
             }
@@ -45,6 +48,7 @@ public class Client {
             System.out.println("err");
         }
     }
+
     public static void main(String[] args) throws InterruptedException {
 // Access a service running on the local machine on port 50051
         String target = "localhost:50051";
