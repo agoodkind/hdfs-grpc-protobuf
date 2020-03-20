@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
@@ -26,7 +27,9 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
         this.PORT_NUM = portNum;
     }
 
-    class SingleFile {
+    Map<SingleFile, BlockLocationMapping> currentFileToDNMappings = new HashMap<>();
+
+    static class SingleFile {
         /**
          * a mapping of mappings.....just think about it
          * maps metadata about a file to the list of mappings for its blocks
@@ -35,18 +38,28 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
         private BlockMetadata[] blockList;
         private int numBlocks;
 
-
         public SingleFile(FileMetadata fileMetadata) {
             this.fileMetadata = fileMetadata;
-            this.numBlocks =  (int) Math.ceil((double) fileMetadata.getSize() / BLOCK_SIZE);
+            this.numBlocks = (int) Math.ceil((double) fileMetadata.getSize() / BLOCK_SIZE);
             this.blockList = new BlockMetadata[numBlocks];
         }
 
-        public void addBlock(BlockMetadata blockMetadata) {
+        public void addSingleBlockMetadata(BlockMetadata blockMetadata) {
             this.blockList[blockMetadata.getIndex()] = blockMetadata;
         }
 
+        public static SingleFile parseMetadataFromFile(String fileName) {
+            return new SingleFile(FileMetadata
+                    .newBuilder()
+                    .setName(fileName)
+                    .build()
+            );
+        }
 
+        public FileMetadata getFileMetadata() {
+
+            return this.fileMetadata;
+        }
 
     }
 
@@ -54,10 +67,30 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
     /**
      * NameNode implementation
      */
+
+    // logic to assign blocks to data nodes
     @Override
     public synchronized void assignBlocks(FileMetadata requestWithFileMetadata,
                                           StreamObserver<BlockLocationMapping> responseObserverWithBlockLocationMapping) {
 
+        logger.log(Level.INFO, "FileName: " + requestWithFileMetadata.getName());
+        responseObserverWithBlockLocationMapping.onNext(BlockLocationMapping.newBuilder()
+                .setMapping(0, BlockLocation.newBuilder()
+                        .setBlockInfo(BlockMetadata
+                                .newBuilder()
+                                .setBlockSize(64)
+                                .setFileName("test.txt")
+                                .setIndex(0)
+                                .build())
+                        .setDataNodeInfo(DataNodeInfo
+                                .newBuilder()
+                                .setIp("127.0.0.1")
+                                .setPort(50052)
+                                .build())
+                        .build())
+                .build());
+
+        responseObserverWithBlockLocationMapping.onCompleted();
     }
 
     /**
