@@ -1,10 +1,8 @@
-package ds.hdfs.test;
+package example.test;
 
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
-import ds.hdfs.test.TestRequest;
-import ds.hdfs.test.TestReply;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;

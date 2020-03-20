@@ -1,6 +1,5 @@
-package ds.hdfs.test;
+package example.test;
 
-import com.google.protobuf.BlockingRpcChannel;
 import io.grpc.Channel;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
