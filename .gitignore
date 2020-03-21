@@ -51,6 +51,9 @@ cmake-build-*/
 # IntelliJ
 out/
 .idea
+.idea/**
+.idea/*
+.idea/misc.xml
 # JIRA plugin
 atlassian-ide-plugin.xml
 

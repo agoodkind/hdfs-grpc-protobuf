@@ -29,6 +29,7 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
         fileNameBlockLocationMappingMap = new ConcurrentHashMap<>();
         dataNodeList = Collections.synchronizedList(new ArrayList<>());
 
+        // TODO: remove debug data
         dataNodeList.add(DataNodeInfo
                 .newBuilder()
                 .setIp("69.69.69.69")
@@ -36,25 +37,38 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
                 .build());
     }
 
+    /**
+     * for a given filename return its a metadata
+     * @param fileName
+     * @return fileMetadata
+     */
     private FileMetadata getFileMetadata(String fileName) {
         return fileNameFileMetadataMap.get(fileName);
     }
 
-    private void addSingleFile(String fileName) {
-        fileNameFileMetadataMap.put(fileName, FileMetadata
-                .newBuilder()
-                .setName(fileName)
-                .build());
-    }
-
+    /**
+     * @return the list of files that the NN server currently is tracking
+     */
     private ArrayList<String> getListOfFiles() {
         return new ArrayList<>(fileNameFileMetadataMap.keySet());
     }
 
+    /**
+     * getter for the NN's blockLocationMappings
+     * @param fileName
+     * @return blockLocationMapping
+     */
     private BlockLocationMapping getBlockLocationMapping(String fileName) {
         return fileNameBlockLocationMappingMap.get(fileName);
     }
 
+    /**
+     * given a file, retrieve its metadata then return the number of blocks
+     * if fileSize % BLOCK_SIZE == 0: then every block will be filled exactly to BLOCK_SIZE
+     * else: there will 1 extra block that is not completely filled
+     * @param fileName
+     * @return numberOfBlocks
+     */
     private int calculateNumberOfBlocksForFile(String fileName) {
         int fileSize = getFileMetadata(fileName).getSize();
         return (int) Math.ceil((double) fileSize / BLOCK_SIZE);
@@ -66,6 +80,16 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
         int numOfDNs = dataNodeList.size();
         List<BlockLocation> blockLocations = Collections.synchronizedList(new ArrayList<>());
 
+        // follows a modified version of the apache cassandra token ring hashing algorithm
+        // http://cassandra.apache.org/doc/latest/architecture/dynamo.html#consistent-hashing-using-a-token-ring
+        // i in loop from 0 to numOfBlocks
+        // file  #: range of nodes its on
+        // store 0: [0, 1] -> 0 <=  2,  1 <=  2  -> [0, 1]
+        // store 1: [1, 2] -> 1 <=  2,  2 <=  2  -> [1, 2]
+        // store 2: [2, 3] -> 2 <=  2,  3 \<= 2  -> [2, 1] {2, 3 - 2}, {2 > 1} -> [1, 2]
+        // store 3: [3, 4] -> 3 \<= 2,  4 \<= 2  -> [0, 1] {3 - 3, 4 - 3}
+        // store 4: [4, 5] -> 4 \<= 2,  5 \<= 2  -> [1, 2] {4 - 3, 5 - 3}
+        // store 5: [5, 6] -> 5 \<= 2,  6 \<= 2  -> [2, 1] {5 - 3, 6 - 3
         int j = 0;
         for (int i = 0; i < numOfBlocks; i++) {
             int k = 0;
@@ -75,6 +99,8 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
                     j -= numOfDNs;
                 }
 
+                // create the individual 1:1 block mappings
+                // store them in a temporary array
                 blockLocations.add(BlockLocation
                         .newBuilder()
                         .setDataNodeInfo(dataNodeList.get(j))
@@ -92,21 +118,13 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
             }
 
         }
-        // i in loop from 0 to numOfBlocks
-        // file  #: range of nodes its on
-        // store 0: [0, 1] -> 0 <=  2,  1 <=  2  -> [0, 1]
-        // store 1: [1, 2] -> 1 <=  2,  2 <=  2  -> [1, 2]
-        // store 2: [2, 3] -> 2 <=  2,  3 \<= 2  -> [2, 1] {2, 3 - 2}, {2 > 1} -> [1, 2]
-        // store 3: [3, 4] -> 3 \<= 2,  4 \<= 2  -> [0, 1] {3 - 3, 4 - 3}
-        // store 4: [4, 5] -> 4 \<= 2,  5 \<= 2  -> [1, 2] {4 - 3, 5 - 3}
-        // store 5: [5, 6] -> 5 \<= 2,  6 \<= 2  -> [2, 1] {5 - 3, 6 - 3
-        BlockLocationMapping blockLocationMapping = BlockLocationMapping
+
+        // create a the protobuf BlockLocationMapping from the temp array
+
+        return BlockLocationMapping
                 .newBuilder()
                 .addAllMapping(blockLocations)
                 .build();
-
-        System.out.println(blockLocationMapping);
-        return blockLocationMapping;
     }
 
     private void addDataNode(DataNodeInfo dataNodeInfo) {
@@ -134,11 +152,11 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
 
 
     /**
-     * NameNode implementation
+     * NameNode gRPC implementations
      */
 
     /**
-     * TODO:  logic to assign blocks to data nodes
+     * TODO: block reports impl
      */
     @Override
     public synchronized void heartBeat(BlockReport requestWithBlockReportFromDN,

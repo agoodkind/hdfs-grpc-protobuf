@@ -1,6 +1,5 @@
 package ds.hdfs;
 
-import example.test.TestClient;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.Status.Code;
@@ -30,9 +29,25 @@ public class Client {
 
     private void get(String fileName) {
 
+        // TODO: wrap this logic in its own static class
+        FileMetadata request = FileMetadata.newBuilder()
+                .setSize(128)
+                .setName(fileName)
+                .build();
+
+        try {
+            BlockLocationMapping response = blockingStub.getBlockLocations(request);
+            System.out.println(response.getMappingList());
+            if (response.getMappingList().size() < 1) {
+                throw new RuntimeException("Invalid response");
+            }
+        } catch (StatusRuntimeException e) {
+            System.out.println("err");
+        }
     }
 
     private void put(String fileName) {
+        // TODO: wrap this logic in its own static class
         FileMetadata request = FileMetadata.newBuilder()
                 .setSize(128)
                 .setName(fileName)
@@ -40,7 +55,7 @@ public class Client {
 
         try {
             BlockLocationMapping response = blockingStub.assignBlocks(request);
-            System.out.println(response.getMappingList());
+
             if (response.getMappingList().size() < 1) {
                 throw new RuntimeException("Invalid response");
             }
@@ -78,6 +93,7 @@ public class Client {
         try {
             Client client = new Client(channel);
             client.put("testtttttkjasldjalksjd");
+            client.get("testtttttkjasldjalksjd");
         } finally {
             // ManagedChannels use resources like threads and TCP connections. To prevent leaking these
             // resources the channel should be shut down when it will no longer be used. If it may be used
