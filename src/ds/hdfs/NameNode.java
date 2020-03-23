@@ -181,6 +181,21 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
     //************* NameNode gRPC implementations *******************//
 
     /**
+     * Called by Client to get a list of the current files
+     * @param request
+     * @param responseObserverWithFileList
+     */
+    @Override
+    public synchronized void listFiles(ListFilesParam request,
+                                       StreamObserver<FileList> responseObserverWithFileList) {
+        responseObserverWithFileList.onNext(FileList
+                .newBuilder()
+                .addAllFiles(fileNameFileMetadataMap.values())
+                .build());
+        responseObserverWithFileList.onCompleted();
+    }
+
+    /**
      * Called by DataNode's to report what blocks they have
      * @param requestWithBlockReportFromDN
      * @param responseObserverWithStatus
