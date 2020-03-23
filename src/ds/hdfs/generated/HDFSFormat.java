@@ -15,10 +15,10 @@ public final class HDFSFormat {
         (com.google.protobuf.ExtensionRegistryLite) registry);
   }
   static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_ds_hdfs_listFilesParam_descriptor;
+    internal_static_ds_hdfs_ListFilesParam_descriptor;
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_ds_hdfs_listFilesParam_fieldAccessorTable;
+      internal_static_ds_hdfs_ListFilesParam_fieldAccessorTable;
   static final com.google.protobuf.Descriptors.Descriptor
     internal_static_ds_hdfs_Status_descriptor;
   static final 
@@ -73,7 +73,7 @@ public final class HDFSFormat {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\020hdfsformat.proto\022\007ds.hdfs\"\020\n\016listFiles" +
+      "\n\020hdfsformat.proto\022\007ds.hdfs\"\020\n\016ListFiles" +
       "Param\"\031\n\006Status\022\017\n\007success\030\001 \001(\010\"D\n\005Bloc" +
       "k\022*\n\nblock_info\030\001 \001(\0132\026.ds.hdfs.BlockMet" +
       "adata\022\017\n\007content\030\002 \001(\014\"*\n\014FileMetadata\022\014" +
@@ -94,7 +94,7 @@ public final class HDFSFormat {
       "leMetadata\032\035.ds.hdfs.BlockLocationMappin" +
       "g\"\000\022K\n\021getBlockLocations\022\025.ds.hdfs.FileM" +
       "etadata\032\035.ds.hdfs.BlockLocationMapping\"\000" +
-      "\0229\n\tlistFiles\022\027.ds.hdfs.listFilesParam\032\021" +
+      "\0229\n\tlistFiles\022\027.ds.hdfs.ListFilesParam\032\021" +
       ".ds.hdfs.FileList\"\0002s\n\010DataNode\0226\n\treadB" +
       "lock\022\026.ds.hdfs.BlockMetadata\032\017.ds.hdfs.S" +
       "tatus\"\000\022/\n\nwriteBlock\022\016.ds.hdfs.Block\032\017." +
@@ -105,11 +105,11 @@ public final class HDFSFormat {
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
         });
-    internal_static_ds_hdfs_listFilesParam_descriptor =
+    internal_static_ds_hdfs_ListFilesParam_descriptor =
       getDescriptor().getMessageTypes().get(0);
-    internal_static_ds_hdfs_listFilesParam_fieldAccessorTable = new
+    internal_static_ds_hdfs_ListFilesParam_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_ds_hdfs_listFilesParam_descriptor,
+        internal_static_ds_hdfs_ListFilesParam_descriptor,
         new java.lang.String[] { });
     internal_static_ds_hdfs_Status_descriptor =
       getDescriptor().getMessageTypes().get(1);

@@ -15,10 +15,10 @@ service NameNode {
     // used by the Client
     rpc getBlockLocations (FileMetadata) returns (BlockLocationMapping) {};
     // used by the Client
-    rpc listFiles (listFilesParam) returns (FileList) {};
+    rpc listFiles (ListFilesParam) returns (FileList) {};
 }
 
-message listFilesParam {}
+message ListFilesParam {}
 
 service DataNode {
     // used by the Client

@@ -3,7 +3,7 @@
 
 package ds.hdfs.generated;
 
-public interface listFilesParamOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:ds.hdfs.listFilesParam)
+public interface ListFilesParamOrBuilder extends
+    // @@protoc_insertion_point(interface_extends:ds.hdfs.ListFilesParam)
     com.google.protobuf.MessageOrBuilder {
 }

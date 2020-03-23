@@ -4,25 +4,25 @@
 package ds.hdfs.generated;
 
 /**
- * Protobuf type {@code ds.hdfs.listFilesParam}
+ * Protobuf type {@code ds.hdfs.ListFilesParam}
  */
-public  final class listFilesParam extends
+public  final class ListFilesParam extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:ds.hdfs.listFilesParam)
-    listFilesParamOrBuilder {
+    // @@protoc_insertion_point(message_implements:ds.hdfs.ListFilesParam)
+    ListFilesParamOrBuilder {
 private static final long serialVersionUID = 0L;
-  // Use listFilesParam.newBuilder() to construct.
-  private listFilesParam(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+  // Use ListFilesParam.newBuilder() to construct.
+  private ListFilesParam(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
     super(builder);
   }
-  private listFilesParam() {
+  private ListFilesParam() {
   }
 
   @java.lang.Override
   @SuppressWarnings({"unused"})
   protected java.lang.Object newInstance(
       UnusedPrivateParameter unused) {
-    return new listFilesParam();
+    return new ListFilesParam();
   }
 
   @java.lang.Override
@@ -30,7 +30,7 @@ private static final long serialVersionUID = 0L;
   getUnknownFields() {
     return this.unknownFields;
   }
-  private listFilesParam(
+  private ListFilesParam(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
@@ -69,15 +69,15 @@ private static final long serialVersionUID = 0L;
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return ds.hdfs.generated.HDFSFormat.internal_static_ds_hdfs_listFilesParam_descriptor;
+    return ds.hdfs.generated.HDFSFormat.internal_static_ds_hdfs_ListFilesParam_descriptor;
   }
 
   @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return ds.hdfs.generated.HDFSFormat.internal_static_ds_hdfs_listFilesParam_fieldAccessorTable
+    return ds.hdfs.generated.HDFSFormat.internal_static_ds_hdfs_ListFilesParam_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            ds.hdfs.generated.listFilesParam.class, ds.hdfs.generated.listFilesParam.Builder.class);
+            ds.hdfs.generated.ListFilesParam.class, ds.hdfs.generated.ListFilesParam.Builder.class);
   }
 
   private byte memoizedIsInitialized = -1;
@@ -113,10 +113,10 @@ private static final long serialVersionUID = 0L;
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof ds.hdfs.generated.listFilesParam)) {
+    if (!(obj instanceof ds.hdfs.generated.ListFilesParam)) {
       return super.equals(obj);
     }
-    ds.hdfs.generated.listFilesParam other = (ds.hdfs.generated.listFilesParam) obj;
+    ds.hdfs.generated.ListFilesParam other = (ds.hdfs.generated.ListFilesParam) obj;
 
     if (!unknownFields.equals(other.unknownFields)) return false;
     return true;
@@ -134,69 +134,69 @@ private static final long serialVersionUID = 0L;
     return hash;
   }
 
-  public static ds.hdfs.generated.listFilesParam parseFrom(
+  public static ds.hdfs.generated.ListFilesParam parseFrom(
       java.nio.ByteBuffer data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static ds.hdfs.generated.listFilesParam parseFrom(
+  public static ds.hdfs.generated.ListFilesParam parseFrom(
       java.nio.ByteBuffer data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static ds.hdfs.generated.listFilesParam parseFrom(
+  public static ds.hdfs.generated.ListFilesParam parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static ds.hdfs.generated.listFilesParam parseFrom(
+  public static ds.hdfs.generated.ListFilesParam parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static ds.hdfs.generated.listFilesParam parseFrom(byte[] data)
+  public static ds.hdfs.generated.ListFilesParam parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static ds.hdfs.generated.listFilesParam parseFrom(
+  public static ds.hdfs.generated.ListFilesParam parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static ds.hdfs.generated.listFilesParam parseFrom(java.io.InputStream input)
+  public static ds.hdfs.generated.ListFilesParam parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static ds.hdfs.generated.listFilesParam parseFrom(
+  public static ds.hdfs.generated.ListFilesParam parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
-  public static ds.hdfs.generated.listFilesParam parseDelimitedFrom(java.io.InputStream input)
+  public static ds.hdfs.generated.ListFilesParam parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input);
   }
-  public static ds.hdfs.generated.listFilesParam parseDelimitedFrom(
+  public static ds.hdfs.generated.ListFilesParam parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static ds.hdfs.generated.listFilesParam parseFrom(
+  public static ds.hdfs.generated.ListFilesParam parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static ds.hdfs.generated.listFilesParam parseFrom(
+  public static ds.hdfs.generated.ListFilesParam parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -209,7 +209,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(ds.hdfs.generated.listFilesParam prototype) {
+  public static Builder newBuilder(ds.hdfs.generated.ListFilesParam prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
   @java.lang.Override
@@ -225,26 +225,26 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
-   * Protobuf type {@code ds.hdfs.listFilesParam}
+   * Protobuf type {@code ds.hdfs.ListFilesParam}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:ds.hdfs.listFilesParam)
-      ds.hdfs.generated.listFilesParamOrBuilder {
+      // @@protoc_insertion_point(builder_implements:ds.hdfs.ListFilesParam)
+      ds.hdfs.generated.ListFilesParamOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return ds.hdfs.generated.HDFSFormat.internal_static_ds_hdfs_listFilesParam_descriptor;
+      return ds.hdfs.generated.HDFSFormat.internal_static_ds_hdfs_ListFilesParam_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return ds.hdfs.generated.HDFSFormat.internal_static_ds_hdfs_listFilesParam_fieldAccessorTable
+      return ds.hdfs.generated.HDFSFormat.internal_static_ds_hdfs_ListFilesParam_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              ds.hdfs.generated.listFilesParam.class, ds.hdfs.generated.listFilesParam.Builder.class);
+              ds.hdfs.generated.ListFilesParam.class, ds.hdfs.generated.ListFilesParam.Builder.class);
     }
 
-    // Construct using ds.hdfs.generated.listFilesParam.newBuilder()
+    // Construct using ds.hdfs.generated.ListFilesParam.newBuilder()
     private Builder() {
       maybeForceBuilderInitialization();
     }
@@ -268,17 +268,17 @@ private static final long serialVersionUID = 0L;
     @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return ds.hdfs.generated.HDFSFormat.internal_static_ds_hdfs_listFilesParam_descriptor;
+      return ds.hdfs.generated.HDFSFormat.internal_static_ds_hdfs_ListFilesParam_descriptor;
     }
 
     @java.lang.Override
-    public ds.hdfs.generated.listFilesParam getDefaultInstanceForType() {
-      return ds.hdfs.generated.listFilesParam.getDefaultInstance();
+    public ds.hdfs.generated.ListFilesParam getDefaultInstanceForType() {
+      return ds.hdfs.generated.ListFilesParam.getDefaultInstance();
     }
 
     @java.lang.Override
-    public ds.hdfs.generated.listFilesParam build() {
-      ds.hdfs.generated.listFilesParam result = buildPartial();
+    public ds.hdfs.generated.ListFilesParam build() {
+      ds.hdfs.generated.ListFilesParam result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
@@ -286,8 +286,8 @@ private static final long serialVersionUID = 0L;
     }
 
     @java.lang.Override
-    public ds.hdfs.generated.listFilesParam buildPartial() {
-      ds.hdfs.generated.listFilesParam result = new ds.hdfs.generated.listFilesParam(this);
+    public ds.hdfs.generated.ListFilesParam buildPartial() {
+      ds.hdfs.generated.ListFilesParam result = new ds.hdfs.generated.ListFilesParam(this);
       onBuilt();
       return result;
     }
@@ -326,16 +326,16 @@ private static final long serialVersionUID = 0L;
     }
     @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof ds.hdfs.generated.listFilesParam) {
-        return mergeFrom((ds.hdfs.generated.listFilesParam)other);
+      if (other instanceof ds.hdfs.generated.ListFilesParam) {
+        return mergeFrom((ds.hdfs.generated.ListFilesParam)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(ds.hdfs.generated.listFilesParam other) {
-      if (other == ds.hdfs.generated.listFilesParam.getDefaultInstance()) return this;
+    public Builder mergeFrom(ds.hdfs.generated.ListFilesParam other) {
+      if (other == ds.hdfs.generated.ListFilesParam.getDefaultInstance()) return this;
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
@@ -351,11 +351,11 @@ private static final long serialVersionUID = 0L;
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      ds.hdfs.generated.listFilesParam parsedMessage = null;
+      ds.hdfs.generated.ListFilesParam parsedMessage = null;
       try {
         parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        parsedMessage = (ds.hdfs.generated.listFilesParam) e.getUnfinishedMessage();
+        parsedMessage = (ds.hdfs.generated.ListFilesParam) e.getUnfinishedMessage();
         throw e.unwrapIOException();
       } finally {
         if (parsedMessage != null) {
@@ -377,41 +377,41 @@ private static final long serialVersionUID = 0L;
     }
 
 
-    // @@protoc_insertion_point(builder_scope:ds.hdfs.listFilesParam)
+    // @@protoc_insertion_point(builder_scope:ds.hdfs.ListFilesParam)
   }
 
-  // @@protoc_insertion_point(class_scope:ds.hdfs.listFilesParam)
-  private static final ds.hdfs.generated.listFilesParam DEFAULT_INSTANCE;
+  // @@protoc_insertion_point(class_scope:ds.hdfs.ListFilesParam)
+  private static final ds.hdfs.generated.ListFilesParam DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new ds.hdfs.generated.listFilesParam();
+    DEFAULT_INSTANCE = new ds.hdfs.generated.ListFilesParam();
   }
 
-  public static ds.hdfs.generated.listFilesParam getDefaultInstance() {
+  public static ds.hdfs.generated.ListFilesParam getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
-  private static final com.google.protobuf.Parser<listFilesParam>
-      PARSER = new com.google.protobuf.AbstractParser<listFilesParam>() {
+  private static final com.google.protobuf.Parser<ListFilesParam>
+      PARSER = new com.google.protobuf.AbstractParser<ListFilesParam>() {
     @java.lang.Override
-    public listFilesParam parsePartialFrom(
+    public ListFilesParam parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return new listFilesParam(input, extensionRegistry);
+      return new ListFilesParam(input, extensionRegistry);
     }
   };
 
-  public static com.google.protobuf.Parser<listFilesParam> parser() {
+  public static com.google.protobuf.Parser<ListFilesParam> parser() {
     return PARSER;
   }
 
   @java.lang.Override
-  public com.google.protobuf.Parser<listFilesParam> getParserForType() {
+  public com.google.protobuf.Parser<ListFilesParam> getParserForType() {
     return PARSER;
   }
 
   @java.lang.Override
-  public ds.hdfs.generated.listFilesParam getDefaultInstanceForType() {
+  public ds.hdfs.generated.ListFilesParam getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 
