@@ -18,23 +18,17 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
     private static int BLOCK_SIZE;
     private static int PORT_NUM;
     private static int REPLICATION_FACTOR = 2;
+    private static int HEARTBEART_INTERVAL_MS = 10000;
     private ConcurrentHashMap<String, FileMetadata> fileNameFileMetadataMap;
     private ConcurrentHashMap<String, BlockLocationMapping> fileNameBlockLocationMappingMap;
-    private List<DataNodeInfo> dataNodeList;
+    private ConcurrentHashMap<DataNodeInfo, Long> dataNodeList;
 
     public NameNode(int portNum, int blockSize) {
         BLOCK_SIZE = blockSize;
         PORT_NUM = portNum;
         fileNameFileMetadataMap = new ConcurrentHashMap<>();
         fileNameBlockLocationMappingMap = new ConcurrentHashMap<>();
-        dataNodeList = Collections.synchronizedList(new ArrayList<>());
-
-        // TODO: remove debug data
-        dataNodeList.add(DataNodeInfo
-                .newBuilder()
-                .setIp("69.69.69.69")
-                .setPort(69420)
-                .build());
+        dataNodeList = new ConcurrentHashMap<>();
     }
 
     /**
@@ -74,11 +68,17 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
         return (int) Math.ceil((double) fileSize / BLOCK_SIZE);
     }
 
+    /**
+     *
+     * @param fileName
+     * @return blockLocationMapping
+     */
     private BlockLocationMapping generateBlockLocationMappingAssignmentsForFile(String fileName) {
         FileMetadata fileMetadata = getFileMetadata(fileName);
         int numOfBlocks = calculateNumberOfBlocksForFile(fileName);
         int numOfDNs = dataNodeList.size();
         List<BlockLocation> blockLocations = Collections.synchronizedList(new ArrayList<>());
+        List<DataNodeInfo> currentDataNodes = Collections.synchronizedList(new ArrayList<>(dataNodeList.keySet()));
 
         // follows a modified version of the apache cassandra token ring hashing algorithm
         // http://cassandra.apache.org/doc/latest/architecture/dynamo.html#consistent-hashing-using-a-token-ring
@@ -103,7 +103,7 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
                 // store them in a temporary array
                 blockLocations.add(BlockLocation
                         .newBuilder()
-                        .setDataNodeInfo(dataNodeList.get(j))
+                        .setDataNodeInfo(currentDataNodes.get(j))
                         .setBlockInfo(BlockMetadata
                                 .newBuilder()
                                 .setBlockSize(BLOCK_SIZE)
@@ -127,12 +127,15 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
                 .build();
     }
 
-    private void addDataNode(DataNodeInfo dataNodeInfo) {
-        dataNodeList.add(dataNodeInfo);
+
+
+
+    private void removeDataNode(DataNodeInfo dataNodeInfo) {
+        dataNodeList.remove(dataNodeInfo);
     }
 
     private DataNodeInfo getDataNodeInfo(String address) {
-        for (DataNodeInfo info : dataNodeList) {
+        for (DataNodeInfo info : dataNodeList.keySet()) {
             if (info.getIp().equals(address)) {
                 return info;
             }
@@ -150,25 +153,83 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
 
     }
 
+    private Set<BlockMetadata> getBlocksForDN(DataNodeInfo dataNodeInfo) {
+
+        Set<BlockMetadata> out = Collections.synchronizedSet(new HashSet<>());
+
+        for (BlockLocationMapping blockLocationMapping : fileNameBlockLocationMappingMap.values()) {
+            for (BlockLocation blockLocation : blockLocationMapping.getMappingList()) {
+                if (blockLocation.getDataNodeInfo().equals(dataNodeInfo)) {
+                    out.add(blockLocation.getBlockInfo());
+                }
+            }
+        }
+
+        return out;
+    }
+
+    private Set<DataNodeInfo> getDNsForBlock(BlockMetadata blockInfo) {
+        Set<DataNodeInfo> out = Collections.synchronizedSet(new HashSet<>());
+        for (BlockLocation blockLocation : fileNameBlockLocationMappingMap.get(blockInfo.getFileName()).getMappingList()) {
+            if (blockLocation.getBlockInfo().equals(blockInfo)) {
+                out.add(blockLocation.getDataNodeInfo());
+            }
+        }
+        return out;
+    }
+
+    //************* NameNode gRPC implementations *******************//
 
     /**
-     * NameNode gRPC implementations
-     */
-
-    /**
-     * TODO: block reports impl
+     * Called by DataNode's to report what blocks they have
+     * @param requestWithBlockReportFromDN
+     * @param responseObserverWithStatus
      */
     @Override
     public synchronized void heartBeat(BlockReport requestWithBlockReportFromDN,
                                        StreamObserver<Status> responseObserverWithStatus) {
 
-    }
+        List<BlockMetadata> blockReportList = requestWithBlockReportFromDN.getBlocksList();
+        Set<BlockMetadata> knownBlocksForDN = getBlocksForDN(requestWithBlockReportFromDN.getDataNodeInfo());
 
+        // update the last time heard timestamp for  this DN
+        dataNodeList.put(requestWithBlockReportFromDN.getDataNodeInfo(), System.currentTimeMillis());
+
+        for (BlockMetadata blockReport : blockReportList) {
+            if (!knownBlocksForDN.contains(blockReport)) {
+                // we don't have information on this block
+                // so add a new block location mapping
+                BlockLocation location = BlockLocation
+                        .newBuilder()
+                        .setBlockInfo(blockReport)
+                        .setDataNodeInfo(requestWithBlockReportFromDN.getDataNodeInfo())
+                        .build();
+
+                if (fileNameBlockLocationMappingMap.containsKey(blockReport.getFileName())) {
+                    // if we already have a record for the corresponding file, then just update it
+                    fileNameBlockLocationMappingMap.put(blockReport.getFileName(),
+                            fileNameBlockLocationMappingMap.get(blockReport.getFileName())
+                                    .toBuilder()
+                                    .addMapping(location)
+                                    .build());
+                } else {
+                    // we need to create a new record for the file as well
+                    fileNameBlockLocationMappingMap.put(blockReport.getFileName(),
+                            BlockLocationMapping.newBuilder().addMapping(location).build());
+                }
+
+            }
+        }
+
+        responseObserverWithStatus.onNext(Status.newBuilder().setSuccess(true).build());
+        responseObserverWithStatus.onCompleted();
+    }
 
     @Override
     public synchronized void getBlockLocations(FileMetadata requestWithFileMetadata,
                                                StreamObserver<BlockLocationMapping> responseObserverWithBlockLocationMapping) {
-
+        // TODO: don't return blocks from DN's that have responded > HEART_BEAT_INTERVAL
+        // TODO: print warning when DN's have responded > HEART_BEAT_INTERVAL
         responseObserverWithBlockLocationMapping
                 .onNext(getBlockLocationMapping(requestWithFileMetadata.getName()));
 
@@ -186,6 +247,7 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
         String fileName = requestWithFileMetadata.getName();
         // store the file metadata
         fileNameFileMetadataMap.put(fileName, requestWithFileMetadata);
+        // TODO: write out the updated file list: persistFileInfo()
         // generate the assignment for the file
         BlockLocationMapping blockLocationMapping =
                 generateBlockLocationMappingAssignmentsForFile(fileName);
@@ -244,8 +306,8 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        // read in the two config files
-        // read in persisted file info
+        // TODO: read in the two config files
+        // TODO: read in persisted file info
         // we need port
         // and block size
 //        String config = args[0 or 1 i cant remember];
