@@ -1,11 +1,9 @@
 package ds.hdfs;
 
+import ds.hdfs.generated.*;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.Status.Code;
-import ds.hdfs.generated.BlockLocationMapping;
-import ds.hdfs.generated.FileMetadata;
-import ds.hdfs.generated.NameNodeGrpc;
 import io.grpc.Channel;
 import io.grpc.StatusRuntimeException;
 
@@ -16,9 +14,6 @@ import java.util.logging.Logger;
 public class Client {
     private final NameNodeGrpc.NameNodeBlockingStub blockingStub;
 
-    /**
-     * Construct client for accessing HelloWorld server using the existing channel.
-     */
     public Client(Channel channel) {
         // 'channel' here is a Channel, not a ManagedChannel, so it is not this code's responsibility to
         // shut it down.
@@ -27,13 +22,48 @@ public class Client {
         blockingStub = NameNodeGrpc.newBlockingStub(channel);
     }
 
+    private void testDNHeartbeat(String fileName) {
+
+        // TODO: remove debug data
+        BlockReport request = BlockReport
+                .newBuilder()
+                .addBlocks(BlockMetadata.newBuilder()
+                        .setFileName("test.txt")
+                        .setIndex(0)
+                        .setBlockSize(64)
+                        .build())
+                .addBlocks(BlockMetadata.newBuilder()
+                        .setFileName("test.txt")
+                        .setIndex(1)
+                        .setBlockSize(64)
+                        .build())
+                .setDataNodeInfo(DataNodeInfo.newBuilder()
+                        .setIp("69.69.69.70")
+                        .setPort(69421)
+                        .build())
+                .build();
+
+        try {
+            Status response = blockingStub.heartBeat(request);
+            System.out.println(response.getSuccess());
+            if (!response.getSuccess()) {
+                throw new RuntimeException("Error occurred");
+            }
+        } catch (StatusRuntimeException e) {
+            System.out.println("err");
+        }
+    }
+
     private void get(String fileName) {
 
-        // TODO: wrap this logic in its own static class
+        // TODO: remove debug data
         FileMetadata request = FileMetadata.newBuilder()
                 .setSize(128)
                 .setName(fileName)
                 .build();
+
+        // TODO: assemble metadata and get blocks from nodes
+        // TODO: write out file
 
         try {
             BlockLocationMapping response = blockingStub.getBlockLocations(request);
@@ -52,6 +82,9 @@ public class Client {
                 .setSize(128)
                 .setName(fileName)
                 .build();
+
+        // TODO: read in file
+        // TODO: send out blocks to DNs
 
         try {
             BlockLocationMapping response = blockingStub.assignBlocks(request);
@@ -91,9 +124,14 @@ public class Client {
                 .usePlaintext()
                 .build();
         try {
+            // TODO: read in config data
+            // TODO: read in NN config
+            // TODO: remove debug data
             Client client = new Client(channel);
-            client.put("testtttttkjasldjalksjd");
-            client.get("testtttttkjasldjalksjd");
+            client.put("test.txt");
+            client.get("test.txt");
+            client.testDNHeartbeat("test.txt");
+            client.get("test.txt");
         } finally {
             // ManagedChannels use resources like threads and TCP connections. To prevent leaking these
             // resources the channel should be shut down when it will no longer be used. If it may be used
