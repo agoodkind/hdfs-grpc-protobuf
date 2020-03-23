@@ -14,7 +14,11 @@ service NameNode {
     rpc assignBlocks (FileMetadata) returns (BlockLocationMapping) {};
     // used by the Client
     rpc getBlockLocations (FileMetadata) returns (BlockLocationMapping) {};
+    // used by the Client
+    rpc listFiles (listFilesParam) returns (FileList) {};
 }
+
+message listFilesParam {}
 
 service DataNode {
     // used by the Client
@@ -60,4 +64,10 @@ message BlockLocationMapping {
 message BlockReport {
     DataNodeInfo data_node_info = 1;
     repeated BlockMetadata blocks = 2;
+}
+
+
+
+message FileList {
+    repeated FileMetadata files = 1;
 }

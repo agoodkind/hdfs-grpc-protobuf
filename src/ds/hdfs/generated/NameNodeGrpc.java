@@ -120,6 +120,37 @@ public final class NameNodeGrpc {
     return getGetBlockLocationsMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<ds.hdfs.generated.listFilesParam,
+      ds.hdfs.generated.FileList> getListFilesMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "listFiles",
+      requestType = ds.hdfs.generated.listFilesParam.class,
+      responseType = ds.hdfs.generated.FileList.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<ds.hdfs.generated.listFilesParam,
+      ds.hdfs.generated.FileList> getListFilesMethod() {
+    io.grpc.MethodDescriptor<ds.hdfs.generated.listFilesParam, ds.hdfs.generated.FileList> getListFilesMethod;
+    if ((getListFilesMethod = NameNodeGrpc.getListFilesMethod) == null) {
+      synchronized (NameNodeGrpc.class) {
+        if ((getListFilesMethod = NameNodeGrpc.getListFilesMethod) == null) {
+          NameNodeGrpc.getListFilesMethod = getListFilesMethod =
+              io.grpc.MethodDescriptor.<ds.hdfs.generated.listFilesParam, ds.hdfs.generated.FileList>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "listFiles"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ds.hdfs.generated.listFilesParam.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  ds.hdfs.generated.FileList.getDefaultInstance()))
+              .setSchemaDescriptor(new NameNodeMethodDescriptorSupplier("listFiles"))
+              .build();
+        }
+      }
+    }
+    return getListFilesMethod;
+  }
+
   /**
    * Creates a new async stub that supports all call types for the service
    */
@@ -198,6 +229,16 @@ public final class NameNodeGrpc {
       asyncUnimplementedUnaryCall(getGetBlockLocationsMethod(), responseObserver);
     }
 
+    /**
+     * <pre>
+     * used by the Client
+     * </pre>
+     */
+    public void listFiles(ds.hdfs.generated.listFilesParam request,
+        io.grpc.stub.StreamObserver<ds.hdfs.generated.FileList> responseObserver) {
+      asyncUnimplementedUnaryCall(getListFilesMethod(), responseObserver);
+    }
+
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
@@ -221,6 +262,13 @@ public final class NameNodeGrpc {
                 ds.hdfs.generated.FileMetadata,
                 ds.hdfs.generated.BlockLocationMapping>(
                   this, METHODID_GET_BLOCK_LOCATIONS)))
+          .addMethod(
+            getListFilesMethod(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                ds.hdfs.generated.listFilesParam,
+                ds.hdfs.generated.FileList>(
+                  this, METHODID_LIST_FILES)))
           .build();
     }
   }
@@ -271,6 +319,17 @@ public final class NameNodeGrpc {
       asyncUnaryCall(
           getChannel().newCall(getGetBlockLocationsMethod(), getCallOptions()), request, responseObserver);
     }
+
+    /**
+     * <pre>
+     * used by the Client
+     * </pre>
+     */
+    public void listFiles(ds.hdfs.generated.listFilesParam request,
+        io.grpc.stub.StreamObserver<ds.hdfs.generated.FileList> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getListFilesMethod(), getCallOptions()), request, responseObserver);
+    }
   }
 
   /**
@@ -315,6 +374,16 @@ public final class NameNodeGrpc {
     public ds.hdfs.generated.BlockLocationMapping getBlockLocations(ds.hdfs.generated.FileMetadata request) {
       return blockingUnaryCall(
           getChannel(), getGetBlockLocationsMethod(), getCallOptions(), request);
+    }
+
+    /**
+     * <pre>
+     * used by the Client
+     * </pre>
+     */
+    public ds.hdfs.generated.FileList listFiles(ds.hdfs.generated.listFilesParam request) {
+      return blockingUnaryCall(
+          getChannel(), getListFilesMethod(), getCallOptions(), request);
     }
   }
 
@@ -364,11 +433,23 @@ public final class NameNodeGrpc {
       return futureUnaryCall(
           getChannel().newCall(getGetBlockLocationsMethod(), getCallOptions()), request);
     }
+
+    /**
+     * <pre>
+     * used by the Client
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<ds.hdfs.generated.FileList> listFiles(
+        ds.hdfs.generated.listFilesParam request) {
+      return futureUnaryCall(
+          getChannel().newCall(getListFilesMethod(), getCallOptions()), request);
+    }
   }
 
   private static final int METHODID_HEART_BEAT = 0;
   private static final int METHODID_ASSIGN_BLOCKS = 1;
   private static final int METHODID_GET_BLOCK_LOCATIONS = 2;
+  private static final int METHODID_LIST_FILES = 3;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -398,6 +479,10 @@ public final class NameNodeGrpc {
         case METHODID_GET_BLOCK_LOCATIONS:
           serviceImpl.getBlockLocations((ds.hdfs.generated.FileMetadata) request,
               (io.grpc.stub.StreamObserver<ds.hdfs.generated.BlockLocationMapping>) responseObserver);
+          break;
+        case METHODID_LIST_FILES:
+          serviceImpl.listFiles((ds.hdfs.generated.listFilesParam) request,
+              (io.grpc.stub.StreamObserver<ds.hdfs.generated.FileList>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -463,6 +548,7 @@ public final class NameNodeGrpc {
               .addMethod(getHeartBeatMethod())
               .addMethod(getAssignBlocksMethod())
               .addMethod(getGetBlockLocationsMethod())
+              .addMethod(getListFilesMethod())
               .build();
         }
       }
