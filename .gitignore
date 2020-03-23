@@ -70,3 +70,4 @@ fabric.propertiq    `es
 .DS_Store
 
 bin/*
+/src/tests/
