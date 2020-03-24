@@ -22,7 +22,7 @@ message ListFilesParam {}
 
 service DataNode {
     // used by the Client
-    rpc readBlock (BlockMetadata) returns (Status) {};
+    rpc readBlock (BlockMetadata) returns (Block) {};
     rpc writeBlock (Block) returns (Status) {};
 }
 
