@@ -59,6 +59,19 @@ private static final long serialVersionUID = 0L;
                 input.readMessage(ds.hdfs.generated.BlockLocation.parser(), extensionRegistry));
             break;
           }
+          case 18: {
+            ds.hdfs.generated.FileMetadata.Builder subBuilder = null;
+            if (fileInfo_ != null) {
+              subBuilder = fileInfo_.toBuilder();
+            }
+            fileInfo_ = input.readMessage(ds.hdfs.generated.FileMetadata.parser(), extensionRegistry);
+            if (subBuilder != null) {
+              subBuilder.mergeFrom(fileInfo_);
+              fileInfo_ = subBuilder.buildPartial();
+            }
+
+            break;
+          }
           default: {
             if (!parseUnknownField(
                 input, unknownFields, extensionRegistry, tag)) {
@@ -129,6 +142,29 @@ private static final long serialVersionUID = 0L;
     return mapping_.get(index);
   }
 
+  public static final int FILE_INFO_FIELD_NUMBER = 2;
+  private ds.hdfs.generated.FileMetadata fileInfo_;
+  /**
+   * <code>.ds.hdfs.FileMetadata file_info = 2;</code>
+   * @return Whether the fileInfo field is set.
+   */
+  public boolean hasFileInfo() {
+    return fileInfo_ != null;
+  }
+  /**
+   * <code>.ds.hdfs.FileMetadata file_info = 2;</code>
+   * @return The fileInfo.
+   */
+  public ds.hdfs.generated.FileMetadata getFileInfo() {
+    return fileInfo_ == null ? ds.hdfs.generated.FileMetadata.getDefaultInstance() : fileInfo_;
+  }
+  /**
+   * <code>.ds.hdfs.FileMetadata file_info = 2;</code>
+   */
+  public ds.hdfs.generated.FileMetadataOrBuilder getFileInfoOrBuilder() {
+    return getFileInfo();
+  }
+
   private byte memoizedIsInitialized = -1;
   @java.lang.Override
   public final boolean isInitialized() {
@@ -146,6 +182,9 @@ private static final long serialVersionUID = 0L;
     for (int i = 0; i < mapping_.size(); i++) {
       output.writeMessage(1, mapping_.get(i));
     }
+    if (fileInfo_ != null) {
+      output.writeMessage(2, getFileInfo());
+    }
     unknownFields.writeTo(output);
   }
 
@@ -158,6 +197,10 @@ private static final long serialVersionUID = 0L;
     for (int i = 0; i < mapping_.size(); i++) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(1, mapping_.get(i));
+    }
+    if (fileInfo_ != null) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(2, getFileInfo());
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -176,6 +219,11 @@ private static final long serialVersionUID = 0L;
 
     if (!getMappingList()
         .equals(other.getMappingList())) return false;
+    if (hasFileInfo() != other.hasFileInfo()) return false;
+    if (hasFileInfo()) {
+      if (!getFileInfo()
+          .equals(other.getFileInfo())) return false;
+    }
     if (!unknownFields.equals(other.unknownFields)) return false;
     return true;
   }
@@ -190,6 +238,10 @@ private static final long serialVersionUID = 0L;
     if (getMappingCount() > 0) {
       hash = (37 * hash) + MAPPING_FIELD_NUMBER;
       hash = (53 * hash) + getMappingList().hashCode();
+    }
+    if (hasFileInfo()) {
+      hash = (37 * hash) + FILE_INFO_FIELD_NUMBER;
+      hash = (53 * hash) + getFileInfo().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -331,6 +383,12 @@ private static final long serialVersionUID = 0L;
       } else {
         mappingBuilder_.clear();
       }
+      if (fileInfoBuilder_ == null) {
+        fileInfo_ = null;
+      } else {
+        fileInfo_ = null;
+        fileInfoBuilder_ = null;
+      }
       return this;
     }
 
@@ -366,6 +424,11 @@ private static final long serialVersionUID = 0L;
         result.mapping_ = mapping_;
       } else {
         result.mapping_ = mappingBuilder_.build();
+      }
+      if (fileInfoBuilder_ == null) {
+        result.fileInfo_ = fileInfo_;
+      } else {
+        result.fileInfo_ = fileInfoBuilder_.build();
       }
       onBuilt();
       return result;
@@ -440,6 +503,9 @@ private static final long serialVersionUID = 0L;
             mappingBuilder_.addAllMessages(other.mapping_);
           }
         }
+      }
+      if (other.hasFileInfo()) {
+        mergeFileInfo(other.getFileInfo());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -709,6 +775,125 @@ private static final long serialVersionUID = 0L;
         mapping_ = null;
       }
       return mappingBuilder_;
+    }
+
+    private ds.hdfs.generated.FileMetadata fileInfo_;
+    private com.google.protobuf.SingleFieldBuilderV3<
+        ds.hdfs.generated.FileMetadata, ds.hdfs.generated.FileMetadata.Builder, ds.hdfs.generated.FileMetadataOrBuilder> fileInfoBuilder_;
+    /**
+     * <code>.ds.hdfs.FileMetadata file_info = 2;</code>
+     * @return Whether the fileInfo field is set.
+     */
+    public boolean hasFileInfo() {
+      return fileInfoBuilder_ != null || fileInfo_ != null;
+    }
+    /**
+     * <code>.ds.hdfs.FileMetadata file_info = 2;</code>
+     * @return The fileInfo.
+     */
+    public ds.hdfs.generated.FileMetadata getFileInfo() {
+      if (fileInfoBuilder_ == null) {
+        return fileInfo_ == null ? ds.hdfs.generated.FileMetadata.getDefaultInstance() : fileInfo_;
+      } else {
+        return fileInfoBuilder_.getMessage();
+      }
+    }
+    /**
+     * <code>.ds.hdfs.FileMetadata file_info = 2;</code>
+     */
+    public Builder setFileInfo(ds.hdfs.generated.FileMetadata value) {
+      if (fileInfoBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        fileInfo_ = value;
+        onChanged();
+      } else {
+        fileInfoBuilder_.setMessage(value);
+      }
+
+      return this;
+    }
+    /**
+     * <code>.ds.hdfs.FileMetadata file_info = 2;</code>
+     */
+    public Builder setFileInfo(
+        ds.hdfs.generated.FileMetadata.Builder builderForValue) {
+      if (fileInfoBuilder_ == null) {
+        fileInfo_ = builderForValue.build();
+        onChanged();
+      } else {
+        fileInfoBuilder_.setMessage(builderForValue.build());
+      }
+
+      return this;
+    }
+    /**
+     * <code>.ds.hdfs.FileMetadata file_info = 2;</code>
+     */
+    public Builder mergeFileInfo(ds.hdfs.generated.FileMetadata value) {
+      if (fileInfoBuilder_ == null) {
+        if (fileInfo_ != null) {
+          fileInfo_ =
+            ds.hdfs.generated.FileMetadata.newBuilder(fileInfo_).mergeFrom(value).buildPartial();
+        } else {
+          fileInfo_ = value;
+        }
+        onChanged();
+      } else {
+        fileInfoBuilder_.mergeFrom(value);
+      }
+
+      return this;
+    }
+    /**
+     * <code>.ds.hdfs.FileMetadata file_info = 2;</code>
+     */
+    public Builder clearFileInfo() {
+      if (fileInfoBuilder_ == null) {
+        fileInfo_ = null;
+        onChanged();
+      } else {
+        fileInfo_ = null;
+        fileInfoBuilder_ = null;
+      }
+
+      return this;
+    }
+    /**
+     * <code>.ds.hdfs.FileMetadata file_info = 2;</code>
+     */
+    public ds.hdfs.generated.FileMetadata.Builder getFileInfoBuilder() {
+      
+      onChanged();
+      return getFileInfoFieldBuilder().getBuilder();
+    }
+    /**
+     * <code>.ds.hdfs.FileMetadata file_info = 2;</code>
+     */
+    public ds.hdfs.generated.FileMetadataOrBuilder getFileInfoOrBuilder() {
+      if (fileInfoBuilder_ != null) {
+        return fileInfoBuilder_.getMessageOrBuilder();
+      } else {
+        return fileInfo_ == null ?
+            ds.hdfs.generated.FileMetadata.getDefaultInstance() : fileInfo_;
+      }
+    }
+    /**
+     * <code>.ds.hdfs.FileMetadata file_info = 2;</code>
+     */
+    private com.google.protobuf.SingleFieldBuilderV3<
+        ds.hdfs.generated.FileMetadata, ds.hdfs.generated.FileMetadata.Builder, ds.hdfs.generated.FileMetadataOrBuilder> 
+        getFileInfoFieldBuilder() {
+      if (fileInfoBuilder_ == null) {
+        fileInfoBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+            ds.hdfs.generated.FileMetadata, ds.hdfs.generated.FileMetadata.Builder, ds.hdfs.generated.FileMetadataOrBuilder>(
+                getFileInfo(),
+                getParentForChildren(),
+                isClean());
+        fileInfo_ = null;
+      }
+      return fileInfoBuilder_;
     }
     @java.lang.Override
     public final Builder setUnknownFields(

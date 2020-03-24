@@ -77,15 +77,15 @@ public final class HDFSFormat {
       "Param\"\031\n\006Status\022\017\n\007success\030\001 \001(\010\"D\n\005Bloc" +
       "k\022*\n\nblock_info\030\001 \001(\0132\026.ds.hdfs.BlockMet" +
       "adata\022\017\n\007content\030\002 \001(\014\"*\n\014FileMetadata\022\014" +
-      "\n\004name\030\001 \001(\t\022\014\n\004size\030\002 \001(\005\"o\n\rBlockMetad" +
+      "\n\004name\030\001 \001(\t\022\014\n\004size\030\002 \001(\003\"E\n\rBlockMetad" +
       "ata\022\r\n\005index\030\001 \001(\005\022\022\n\nblock_size\030\002 \001(\005\022\021" +
-      "\n\tfile_name\030\003 \001(\t\022(\n\tfile_info\030\004 \001(\0132\025.d" +
-      "s.hdfs.FileMetadata\"(\n\014DataNodeInfo\022\n\n\002i" +
-      "p\030\001 \001(\t\022\014\n\004port\030\002 \001(\005\"j\n\rBlockLocation\022-" +
-      "\n\016data_node_info\030\001 \001(\0132\025.ds.hdfs.DataNod" +
-      "eInfo\022*\n\nblock_info\030\002 \001(\0132\026.ds.hdfs.Bloc" +
-      "kMetadata\"?\n\024BlockLocationMapping\022\'\n\007map" +
-      "ping\030\001 \003(\0132\026.ds.hdfs.BlockLocation\"d\n\013Bl" +
+      "\n\tfile_name\030\003 \001(\t\"(\n\014DataNodeInfo\022\n\n\002ip\030" +
+      "\001 \001(\t\022\014\n\004port\030\002 \001(\005\"j\n\rBlockLocation\022-\n\016" +
+      "data_node_info\030\001 \001(\0132\025.ds.hdfs.DataNodeI" +
+      "nfo\022*\n\nblock_info\030\002 \001(\0132\026.ds.hdfs.BlockM" +
+      "etadata\"i\n\024BlockLocationMapping\022\'\n\007mappi" +
+      "ng\030\001 \003(\0132\026.ds.hdfs.BlockLocation\022(\n\tfile" +
+      "_info\030\002 \001(\0132\025.ds.hdfs.FileMetadata\"d\n\013Bl" +
       "ockReport\022-\n\016data_node_info\030\001 \001(\0132\025.ds.h" +
       "dfs.DataNodeInfo\022&\n\006blocks\030\002 \003(\0132\026.ds.hd" +
       "fs.BlockMetadata\"0\n\010FileList\022$\n\005files\030\001 " +
@@ -135,7 +135,7 @@ public final class HDFSFormat {
     internal_static_ds_hdfs_BlockMetadata_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_ds_hdfs_BlockMetadata_descriptor,
-        new java.lang.String[] { "Index", "BlockSize", "FileName", "FileInfo", });
+        new java.lang.String[] { "Index", "BlockSize", "FileName", });
     internal_static_ds_hdfs_DataNodeInfo_descriptor =
       getDescriptor().getMessageTypes().get(5);
     internal_static_ds_hdfs_DataNodeInfo_fieldAccessorTable = new
@@ -153,7 +153,7 @@ public final class HDFSFormat {
     internal_static_ds_hdfs_BlockLocationMapping_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_ds_hdfs_BlockLocationMapping_descriptor,
-        new java.lang.String[] { "Mapping", });
+        new java.lang.String[] { "Mapping", "FileInfo", });
     internal_static_ds_hdfs_BlockReport_descriptor =
       getDescriptor().getMessageTypes().get(8);
     internal_static_ds_hdfs_BlockReport_fieldAccessorTable = new

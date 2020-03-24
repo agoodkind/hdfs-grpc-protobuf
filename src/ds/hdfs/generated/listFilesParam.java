@@ -4,6 +4,10 @@
 package ds.hdfs.generated;
 
 /**
+ * <pre>
+ * required by grpc so we can have no parameters
+ * </pre>
+ *
  * Protobuf type {@code ds.hdfs.ListFilesParam}
  */
 public  final class ListFilesParam extends
@@ -225,6 +229,10 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
+   * <pre>
+   * required by grpc so we can have no parameters
+   * </pre>
+   *
    * Protobuf type {@code ds.hdfs.ListFilesParam}
    */
   public static final class Builder extends
