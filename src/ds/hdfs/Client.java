@@ -1,104 +1,213 @@
 package ds.hdfs;
 
+import com.google.protobuf.ByteString;
 import ds.hdfs.generated.*;
+import io.grpc.Channel;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import io.grpc.Status.Code;
-import io.grpc.Channel;
 import io.grpc.StatusRuntimeException;
 
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class Client {
-    private final NameNodeGrpc.NameNodeBlockingStub blockingStub;
 
-    public Client(Channel channel) {
+public class Client {
+    private static final Logger logger = Logger.getLogger(Client.class.getName());
+    private static int BLOCK_SIZE;
+    private final NameNodeGrpc.NameNodeBlockingStub nameNodeBlockingStub;
+    private Map<DataNodeInfo, DataNodeConnection> openDataNodes = new ConcurrentHashMap<>();
+
+    public Client(Channel channel, int blockSize) {
         // 'channel' here is a Channel, not a ManagedChannel, so it is not this code's responsibility to
         // shut it down.
 
         // Passing Channels to code makes code easier to test and makes it easier to reuse Channels.
-        blockingStub = NameNodeGrpc.newBlockingStub(channel);
+        nameNodeBlockingStub = NameNodeGrpc.newBlockingStub(channel);
+        BLOCK_SIZE = blockSize;
     }
 
-    private void testDNHeartbeat(String fileName) {
+    class ClientFile {
 
-        // TODO: remove debug data
-        BlockReport request = BlockReport
-                .newBuilder()
-                .addBlocks(BlockMetadata.newBuilder()
-                        .setFileName("test.txt")
-                        .setIndex(0)
-                        .setBlockSize(64)
-                        .build())
-                .addBlocks(BlockMetadata.newBuilder()
-                        .setFileName("test.txt")
-                        .setIndex(1)
-                        .setBlockSize(64)
-                        .build())
-                .setDataNodeInfo(DataNodeInfo.newBuilder()
-                        .setIp("69.69.69.70")
-                        .setPort(69421)
-                        .build())
-                .build();
+        private RandomAccessFile randomAccessFile;
 
-        try {
-            Status response = blockingStub.heartBeat(request);
-            System.out.println(response.getSuccess());
-            if (!response.getSuccess()) {
-                throw new RuntimeException("Error occurred");
+        ClientFile(String fileName) throws IOException {
+            randomAccessFile = new RandomAccessFile(fileName, "rw");
+        }
+
+        ClientFile(FileMetadata fileMetadata) throws IOException {
+            this(fileMetadata.getName());
+        }
+
+        public void writeBlock(Block block) throws IOException, RuntimeException {
+            if (BLOCK_SIZE != block.getBlockInfo().getBlockSize()) {
+                throw new RuntimeException("mismatch block size");
+            } else {
+                int offset = block.getBlockInfo().getIndex() * BLOCK_SIZE;
+
+                randomAccessFile.write(block.getContent().toByteArray(), offset, BLOCK_SIZE);
             }
-        } catch (StatusRuntimeException e) {
-            System.out.println("err");
+        }
+
+        public Block readBlock(BlockMetadata blockMetadata) throws IOException {
+            if (BLOCK_SIZE != blockMetadata.getBlockSize()) {
+                throw new RuntimeException("mismatch block size");
+            } else {
+                int offset = blockMetadata.getIndex() * BLOCK_SIZE;
+
+                byte[] tempDataBuffer = new byte[BLOCK_SIZE];
+                randomAccessFile.seek(offset);
+                randomAccessFile.read(tempDataBuffer);
+
+                return Block.newBuilder()
+                        .setBlockInfo(blockMetadata)
+                        .setContent(ByteString.copyFrom(tempDataBuffer))
+                        .build();
+
+            }
+        }
+
+        public void close() throws IOException {
+            randomAccessFile.close();
         }
     }
 
-    private void get(String fileName) {
+    class DataNodeConnection {
+
+        private DataNodeGrpc.DataNodeBlockingStub dataNodeBlockingStub;
+        private ManagedChannel managedChannel;
+        private DataNodeInfo dataNodeInfo;
+
+        DataNodeConnection(DataNodeInfo dataNodeInfo) {
+            this.dataNodeInfo = dataNodeInfo;
+            managedChannel = ManagedChannelBuilder
+                    .forAddress(dataNodeInfo.getIp(),
+                            dataNodeInfo.getPort())
+                    .usePlaintext()
+                    .build();
+
+            dataNodeBlockingStub = DataNodeGrpc
+                    .newBlockingStub(managedChannel);
+
+            openDataNodes.putIfAbsent(dataNodeInfo, this);
+
+        }
+
+        public DataNodeInfo getDataNodeInfo() {
+            return this.dataNodeInfo;
+        }
+
+        public ds.hdfs.generated.Status writeBlock(Block block) {
+            return dataNodeBlockingStub.withDeadlineAfter(2, TimeUnit.SECONDS).writeBlock(block);
+        }
+
+        public Block readBlock(BlockMetadata blockMetadata) {
+            return dataNodeBlockingStub.readBlock(blockMetadata);
+        }
+
+        public void shutdown() throws InterruptedException {
+            managedChannel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
+            if (managedChannel.isShutdown()) {
+                openDataNodes.remove(this.dataNodeInfo);
+            }
+        }
+    }
+
+    private void shutDownAllDataNodes() throws InterruptedException {
+        for (HashMap.Entry<DataNodeInfo, DataNodeConnection> openDataNode : openDataNodes.entrySet()) {
+            openDataNode.getValue().shutdown();
+        }
+    }
+
+    private void get(String fileName) throws IOException {
 
         // TODO: remove debug data
         FileMetadata request = FileMetadata.newBuilder()
-                .setSize(128)
                 .setName(fileName)
                 .build();
 
         // TODO: assemble metadata and get blocks from nodes
         // TODO: write out file
 
+        ClientFile clientFile = new ClientFile(request);
+//        Set<BlockMetadata> successfullySentBlocks = new LinkedHashSet<>();
+//        if (!successfullySentBlocks.contains(blockLocation.getBlockInfo())) {
+
         try {
-            BlockLocationMapping response = blockingStub.getBlockLocations(request);
-            System.out.println(response.getMappingList());
-            if (response.getMappingList().size() < 1) {
-                throw new RuntimeException("Invalid response");
-            }
+            BlockLocationMapping response = nameNodeBlockingStub.getBlockLocations(request);
+
+//            for (BlockLocation blockLocation : response.getMappingList()) {
+//                DataNodeConnection currentDataNodeConnection;
+//
+//
+//
+//
+//
+//                clientFile.writeBlock(currentDataNodeConnection
+//                        .readBlock(blockLocation.getBlockInfo()));
+//
+//                throw new RuntimeException("Error reading block from DataNode" + currentDataNodeConnection.getDataNodeInfo());
+//
+//            }
         } catch (StatusRuntimeException e) {
-            System.out.println("err");
+            System.err.println("err");
         }
     }
 
-    private void put(String fileName) {
-        // TODO: wrap this logic in its own static class
-        FileMetadata request = FileMetadata.newBuilder()
-                .setSize(128)
-                .setName(fileName)
-                .build();
-
-        // TODO: read in file
-        // TODO: send out blocks to DNs
+    private void put(String fileName) throws IOException {
+        ClientFile clientFile = new ClientFile(fileName);
 
         try {
-            BlockLocationMapping response = blockingStub.assignBlocks(request);
+            BlockLocationMapping responseWithBlockLocationMapping = nameNodeBlockingStub.assignBlocks(
+                    FileMetadata.newBuilder()
+                            .setSize((int) clientFile.randomAccessFile.length())
+                            .setName(fileName)
+                            .build());
 
-            if (response.getMappingList().size() < 1) {
-                throw new RuntimeException("Invalid response");
+            for (BlockLocation blockLocation : responseWithBlockLocationMapping.getMappingList()) {
+                DataNodeConnection currentDataNodeConnection;
+                // we only need to open a connection to a data node once, this saves resources
+                if (openDataNodes.containsKey(blockLocation.getDataNodeInfo())) {
+                    currentDataNodeConnection = openDataNodes.get(blockLocation.getDataNodeInfo());
+                } else {
+                    // datanodeconnection class adds to the list of open datanodes already
+                    currentDataNodeConnection = new DataNodeConnection(blockLocation.getDataNodeInfo());
+                }
+
+                Block blockToWrite = clientFile.readBlock(blockLocation.getBlockInfo());
+
+                try {
+                    Status responseWithSuccess = currentDataNodeConnection.writeBlock(blockToWrite);
+                    if (!responseWithSuccess.getSuccess()) {
+                        throw new RuntimeException("Error writing block to DataNode" + currentDataNodeConnection.getDataNodeInfo());
+                    }
+
+
+                } catch (StatusRuntimeException e) {
+                    if (e.getStatus().getCode() == io.grpc.Status.Code.DEADLINE_EXCEEDED) {
+                        logger.log(Level.SEVERE, "Could not contact DataNode " + blockLocation.getDataNodeInfo() + ", continuing to try others", e);
+                    }
+                }
             }
+
         } catch (StatusRuntimeException e) {
-            System.out.println("err");
+            logger.log(Level.SEVERE, "Could not get block mapping from the NameNode.", e);
         }
+
+        clientFile.close();
     }
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws InterruptedException, IOException {
 // Access a service running on the local machine on port 50051
+        int BLOCK_SIZE = 64;
+
         String target = "localhost:50051";
         // Allow passing in the user and target strings as command line arguments
 //        if (args.length > 0) {
@@ -123,20 +232,31 @@ public class Client {
                 // needing certificates.
                 .usePlaintext()
                 .build();
+
+        Client client = new Client(channel, BLOCK_SIZE);
+
+
         try {
             // TODO: read in config data
             // TODO: read in NN config
             // TODO: remove debug data
-            Client client = new Client(channel);
+            // TODO: implemennt help & commands
+            // TODO: look at file size vs block metadatas returned from NN
+
+
+            client.get("test.txt");
+
             client.put("test.txt");
             client.get("test.txt");
-            client.testDNHeartbeat("test.txt");
-            client.get("test.txt");
+
         } finally {
             // ManagedChannels use resources like threads and TCP connections. To prevent leaking these
             // resources the channel should be shut down when it will no longer be used. If it may be used
             // again leave it running.
+
+            client.shutDownAllDataNodes();
             channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
+
         }
     }
 }

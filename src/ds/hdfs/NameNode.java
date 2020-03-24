@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
@@ -64,7 +63,7 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
      * @return numberOfBlocks
      */
     private int calculateNumberOfBlocksForFile(String fileName) {
-        int fileSize = getFileMetadata(fileName).getSize();
+        long fileSize = getFileMetadata(fileName).getSize();
         return (int) Math.ceil((double) fileSize / BLOCK_SIZE);
     }
 
@@ -73,7 +72,7 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
      * @param fileName
      * @return blockLocationMapping
      */
-    private BlockLocationMapping generateBlockLocationMappingAssignmentsForFile(String fileName) {
+    private BlockLocationMapping generateBlockLocationMappings(String fileName) {
         FileMetadata fileMetadata = getFileMetadata(fileName);
         int numOfBlocks = calculateNumberOfBlocksForFile(fileName);
         int numOfDNs = dataNodeList.size();
@@ -126,9 +125,6 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
                 .addAllMapping(blockLocations)
                 .build();
     }
-
-
-
 
     private void removeDataNode(DataNodeInfo dataNodeInfo) {
         dataNodeList.remove(dataNodeInfo);
@@ -265,7 +261,7 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
         // TODO: write out the updated file list: persistFileInfo()
         // generate the assignment for the file
         BlockLocationMapping blockLocationMapping =
-                generateBlockLocationMappingAssignmentsForFile(fileName);
+                generateBlockLocationMappings(fileName);
         // store the assignment
         fileNameBlockLocationMappingMap.put(fileName, blockLocationMapping);
         // send the assignment mapping to the client
@@ -332,10 +328,7 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
         final NameNode nameNodeServer = new NameNode(portNum, blockSize);
         // TEST:
 
-
-
         nameNodeServer.startServer();
-
         nameNodeServer.blockUntilShutdown();
     }
 }
