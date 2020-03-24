@@ -1,4 +1,4 @@
-package example.test;
+package tests.test;
 
 import io.grpc.Channel;
 import io.grpc.ManagedChannel;

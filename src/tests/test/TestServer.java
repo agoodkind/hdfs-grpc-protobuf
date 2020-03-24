@@ -1,4 +1,4 @@
-package example.test;
+package tests.test;
 
 import io.grpc.Server;
 import io.grpc.ServerBuilder;

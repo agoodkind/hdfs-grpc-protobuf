@@ -1,4 +1,4 @@
-package example.test;
+package tests.test;
 
 import static io.grpc.MethodDescriptor.generateFullMethodName;
 import static io.grpc.stub.ClientCalls.asyncUnaryCall;
@@ -20,32 +20,32 @@ public final class TestServiceGrpc {
 
   private TestServiceGrpc() {}
 
-  public static final String SERVICE_NAME = "example.test.TestService";
+  public static final String SERVICE_NAME = "tests.test.TestService";
 
   // Static method descriptors that strictly reflect the proto.
-  private static volatile io.grpc.MethodDescriptor<example.test.TestRequest,
-      example.test.TestReply> getTestThisServiceMethod;
+  private static volatile io.grpc.MethodDescriptor<tests.test.TestRequest,
+      tests.test.TestReply> getTestThisServiceMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "TestThisService",
-      requestType = example.test.TestRequest.class,
-      responseType = example.test.TestReply.class,
+      requestType = tests.test.TestRequest.class,
+      responseType = tests.test.TestReply.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<example.test.TestRequest,
-      example.test.TestReply> getTestThisServiceMethod() {
-    io.grpc.MethodDescriptor<example.test.TestRequest, example.test.TestReply> getTestThisServiceMethod;
+  public static io.grpc.MethodDescriptor<tests.test.TestRequest,
+      tests.test.TestReply> getTestThisServiceMethod() {
+    io.grpc.MethodDescriptor<tests.test.TestRequest, tests.test.TestReply> getTestThisServiceMethod;
     if ((getTestThisServiceMethod = TestServiceGrpc.getTestThisServiceMethod) == null) {
       synchronized (TestServiceGrpc.class) {
         if ((getTestThisServiceMethod = TestServiceGrpc.getTestThisServiceMethod) == null) {
           TestServiceGrpc.getTestThisServiceMethod = getTestThisServiceMethod =
-              io.grpc.MethodDescriptor.<example.test.TestRequest, example.test.TestReply>newBuilder()
+              io.grpc.MethodDescriptor.<tests.test.TestRequest, tests.test.TestReply>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "TestThisService"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  example.test.TestRequest.getDefaultInstance()))
+                  tests.test.TestRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  example.test.TestReply.getDefaultInstance()))
+                  tests.test.TestReply.getDefaultInstance()))
               .setSchemaDescriptor(new TestServiceMethodDescriptorSupplier("TestThisService"))
               .build();
         }
@@ -107,8 +107,8 @@ public final class TestServiceGrpc {
 
     /**
      */
-    public void testThisService(example.test.TestRequest request,
-                                io.grpc.stub.StreamObserver<example.test.TestReply> responseObserver) {
+    public void testThisService(tests.test.TestRequest request,
+                                io.grpc.stub.StreamObserver<tests.test.TestReply> responseObserver) {
       asyncUnimplementedUnaryCall(getTestThisServiceMethod(), responseObserver);
     }
 
@@ -118,8 +118,8 @@ public final class TestServiceGrpc {
             getTestThisServiceMethod(),
             asyncUnaryCall(
               new MethodHandlers<
-                example.test.TestRequest,
-                example.test.TestReply>(
+                tests.test.TestRequest,
+                tests.test.TestReply>(
                   this, METHODID_TEST_THIS_SERVICE)))
           .build();
     }
@@ -144,8 +144,8 @@ public final class TestServiceGrpc {
 
     /**
      */
-    public void testThisService(example.test.TestRequest request,
-                                io.grpc.stub.StreamObserver<example.test.TestReply> responseObserver) {
+    public void testThisService(tests.test.TestRequest request,
+                                io.grpc.stub.StreamObserver<tests.test.TestReply> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getTestThisServiceMethod(), getCallOptions()), request, responseObserver);
     }
@@ -170,7 +170,7 @@ public final class TestServiceGrpc {
 
     /**
      */
-    public example.test.TestReply testThisService(example.test.TestRequest request) {
+    public tests.test.TestReply testThisService(tests.test.TestRequest request) {
       return blockingUnaryCall(
           getChannel(), getTestThisServiceMethod(), getCallOptions(), request);
     }
@@ -195,8 +195,8 @@ public final class TestServiceGrpc {
 
     /**
      */
-    public com.google.common.util.concurrent.ListenableFuture<example.test.TestReply> testThisService(
-        example.test.TestRequest request) {
+    public com.google.common.util.concurrent.ListenableFuture<tests.test.TestReply> testThisService(
+        tests.test.TestRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getTestThisServiceMethod(), getCallOptions()), request);
     }
@@ -222,8 +222,8 @@ public final class TestServiceGrpc {
     public void invoke(Req request, io.grpc.stub.StreamObserver<Resp> responseObserver) {
       switch (methodId) {
         case METHODID_TEST_THIS_SERVICE:
-          serviceImpl.testThisService((example.test.TestRequest) request,
-              (io.grpc.stub.StreamObserver<example.test.TestReply>) responseObserver);
+          serviceImpl.testThisService((tests.test.TestRequest) request,
+              (io.grpc.stub.StreamObserver<tests.test.TestReply>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -247,7 +247,7 @@ public final class TestServiceGrpc {
 
     @java.lang.Override
     public com.google.protobuf.Descriptors.FileDescriptor getFileDescriptor() {
-      return example.test.TestProto.getDescriptor();
+      return tests.test.TestProto.getDescriptor();
     }
 
     @java.lang.Override
