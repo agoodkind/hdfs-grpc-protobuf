@@ -1,7 +1,7 @@
 curdir:=$(shell pwd)
 out:=$(curdir)/bin
-hdfs_java_sources:="$(curdir)/src/ds/hdfs"
-classpath:="$(curdir)/lib/*:$(curdir)/bin/"
+hdfs_java_sources:=$(curdir)/src/ds/hdfs
+classpath:=$(curdir)/lib/*:$(curdir)/bin/
 proto_sources:=$(curdir)/src/ds/hdfs/protos
 protoc_grpc_plugin_path:=$(curdir)/plugins
 
@@ -17,7 +17,7 @@ all: proto hdfs mapreduce
 hdfs:
 	javac -d $(out) -cp $(classpath) $(hdfs_java_sources)/generated/*.java $(hdfs_java_sources)/*.java
 mapreduce:
-proto:
+proto: clean
 	chmod +x $(protoc_grpc_plugin_path)/$(protoc_grpc_plugin_exe)
 	protoc --plugin=protoc-gen-grpc-java=$(protoc_grpc_plugin_path)/$(protoc_grpc_plugin_exe) --grpc-java_out=src --proto_path=$(proto_sources) --java_out=src $(proto_sources)/hdfsformat.proto
 test:

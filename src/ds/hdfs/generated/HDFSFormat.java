@@ -95,11 +95,11 @@ public final class HDFSFormat {
       "g\"\000\022K\n\021getBlockLocations\022\025.ds.hdfs.FileM" +
       "etadata\032\035.ds.hdfs.BlockLocationMapping\"\000" +
       "\0229\n\tlistFiles\022\027.ds.hdfs.ListFilesParam\032\021" +
-      ".ds.hdfs.FileList\"\0002s\n\010DataNode\0226\n\treadB" +
-      "lock\022\026.ds.hdfs.BlockMetadata\032\017.ds.hdfs.S" +
-      "tatus\"\000\022/\n\nwriteBlock\022\016.ds.hdfs.Block\032\017." +
-      "ds.hdfs.Status\"\000B$\n\021ds.hdfs.generatedB\nH" +
-      "DFSFormatP\001\210\001\000b\006proto3"
+      ".ds.hdfs.FileList\"\0002r\n\010DataNode\0225\n\treadB" +
+      "lock\022\026.ds.hdfs.BlockMetadata\032\016.ds.hdfs.B" +
+      "lock\"\000\022/\n\nwriteBlock\022\016.ds.hdfs.Block\032\017.d" +
+      "s.hdfs.Status\"\000B$\n\021ds.hdfs.generatedB\nHD" +
+      "FSFormatP\001\210\001\000b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,

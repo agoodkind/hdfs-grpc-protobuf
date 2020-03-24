@@ -28,28 +28,28 @@ public final class DataNodeGrpc {
 
   // Static method descriptors that strictly reflect the proto.
   private static volatile io.grpc.MethodDescriptor<ds.hdfs.generated.BlockMetadata,
-      ds.hdfs.generated.Status> getReadBlockMethod;
+      ds.hdfs.generated.Block> getReadBlockMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "readBlock",
       requestType = ds.hdfs.generated.BlockMetadata.class,
-      responseType = ds.hdfs.generated.Status.class,
+      responseType = ds.hdfs.generated.Block.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
   public static io.grpc.MethodDescriptor<ds.hdfs.generated.BlockMetadata,
-      ds.hdfs.generated.Status> getReadBlockMethod() {
-    io.grpc.MethodDescriptor<ds.hdfs.generated.BlockMetadata, ds.hdfs.generated.Status> getReadBlockMethod;
+      ds.hdfs.generated.Block> getReadBlockMethod() {
+    io.grpc.MethodDescriptor<ds.hdfs.generated.BlockMetadata, ds.hdfs.generated.Block> getReadBlockMethod;
     if ((getReadBlockMethod = DataNodeGrpc.getReadBlockMethod) == null) {
       synchronized (DataNodeGrpc.class) {
         if ((getReadBlockMethod = DataNodeGrpc.getReadBlockMethod) == null) {
           DataNodeGrpc.getReadBlockMethod = getReadBlockMethod =
-              io.grpc.MethodDescriptor.<ds.hdfs.generated.BlockMetadata, ds.hdfs.generated.Status>newBuilder()
+              io.grpc.MethodDescriptor.<ds.hdfs.generated.BlockMetadata, ds.hdfs.generated.Block>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "readBlock"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   ds.hdfs.generated.BlockMetadata.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  ds.hdfs.generated.Status.getDefaultInstance()))
+                  ds.hdfs.generated.Block.getDefaultInstance()))
               .setSchemaDescriptor(new DataNodeMethodDescriptorSupplier("readBlock"))
               .build();
         }
@@ -143,7 +143,7 @@ public final class DataNodeGrpc {
      * </pre>
      */
     public void readBlock(ds.hdfs.generated.BlockMetadata request,
-        io.grpc.stub.StreamObserver<ds.hdfs.generated.Status> responseObserver) {
+        io.grpc.stub.StreamObserver<ds.hdfs.generated.Block> responseObserver) {
       asyncUnimplementedUnaryCall(getReadBlockMethod(), responseObserver);
     }
 
@@ -161,7 +161,7 @@ public final class DataNodeGrpc {
             asyncUnaryCall(
               new MethodHandlers<
                 ds.hdfs.generated.BlockMetadata,
-                ds.hdfs.generated.Status>(
+                ds.hdfs.generated.Block>(
                   this, METHODID_READ_BLOCK)))
           .addMethod(
             getWriteBlockMethod(),
@@ -194,7 +194,7 @@ public final class DataNodeGrpc {
      * </pre>
      */
     public void readBlock(ds.hdfs.generated.BlockMetadata request,
-        io.grpc.stub.StreamObserver<ds.hdfs.generated.Status> responseObserver) {
+        io.grpc.stub.StreamObserver<ds.hdfs.generated.Block> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getReadBlockMethod(), getCallOptions()), request, responseObserver);
     }
@@ -227,7 +227,7 @@ public final class DataNodeGrpc {
      * used by the Client
      * </pre>
      */
-    public ds.hdfs.generated.Status readBlock(ds.hdfs.generated.BlockMetadata request) {
+    public ds.hdfs.generated.Block readBlock(ds.hdfs.generated.BlockMetadata request) {
       return blockingUnaryCall(
           getChannel(), getReadBlockMethod(), getCallOptions(), request);
     }
@@ -259,7 +259,7 @@ public final class DataNodeGrpc {
      * used by the Client
      * </pre>
      */
-    public com.google.common.util.concurrent.ListenableFuture<ds.hdfs.generated.Status> readBlock(
+    public com.google.common.util.concurrent.ListenableFuture<ds.hdfs.generated.Block> readBlock(
         ds.hdfs.generated.BlockMetadata request) {
       return futureUnaryCall(
           getChannel().newCall(getReadBlockMethod(), getCallOptions()), request);
@@ -296,7 +296,7 @@ public final class DataNodeGrpc {
       switch (methodId) {
         case METHODID_READ_BLOCK:
           serviceImpl.readBlock((ds.hdfs.generated.BlockMetadata) request,
-              (io.grpc.stub.StreamObserver<ds.hdfs.generated.Status>) responseObserver);
+              (io.grpc.stub.StreamObserver<ds.hdfs.generated.Block>) responseObserver);
           break;
         case METHODID_WRITE_BLOCK:
           serviceImpl.writeBlock((ds.hdfs.generated.Block) request,
