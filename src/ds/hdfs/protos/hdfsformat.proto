@@ -44,6 +44,7 @@ message BlockMetadata {
     int32 index = 1;
     int32 block_size = 2;
     string file_name = 3;
+    FileMetadata file_info = 4;
 }
 
 
