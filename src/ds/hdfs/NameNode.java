@@ -9,7 +9,9 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 
 public class NameNode extends NameNodeGrpc.NameNodeImplBase {
@@ -18,47 +20,49 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
     private static int PORT_NUM;
     private static int REPLICATION_FACTOR = 2;
     private static int HEARTBEART_INTERVAL_MS = 10000;
-    private ConcurrentHashMap<String, FileMetadata> fileNameFileMetadataMap;
-    private ConcurrentHashMap<String, BlockLocationMapping> fileNameBlockLocationMappingMap;
-    private ConcurrentHashMap<DataNodeInfo, Long> dataNodeList;
+    private ConcurrentHashMap<String, BlockLocationMapping> blockMappings;
+    private ConcurrentHashMap<DataNodeInfo, Long> dataNodeTimestamps;
 
     public NameNode(int portNum, int blockSize) {
         BLOCK_SIZE = blockSize;
         PORT_NUM = portNum;
-        fileNameFileMetadataMap = new ConcurrentHashMap<>();
-        fileNameBlockLocationMappingMap = new ConcurrentHashMap<>();
-        dataNodeList = new ConcurrentHashMap<>();
+        blockMappings = new ConcurrentHashMap<>();
+        dataNodeTimestamps = new ConcurrentHashMap<>();
     }
 
     /**
      * for a given filename return its a metadata
+     *
      * @param fileName
      * @return fileMetadata
      */
     private FileMetadata getFileMetadata(String fileName) {
-        return fileNameFileMetadataMap.get(fileName);
+        return blockMappings.get(fileName).getFileInfo();
     }
 
     /**
-     * @return the list of files that the NN server currently is tracking
+     * @return all the files current being tracked by NN
      */
-    private ArrayList<String> getListOfFiles() {
-        return new ArrayList<>(fileNameFileMetadataMap.keySet());
+    private List<FileMetadata> getCurrentFiles() {
+        return blockMappings.keySet().stream().map(s -> blockMappings.get(s).getFileInfo())
+                .collect(Collectors.toList());
     }
 
     /**
      * getter for the NN's blockLocationMappings
+     *
      * @param fileName
      * @return blockLocationMapping
      */
     private BlockLocationMapping getBlockLocationMapping(String fileName) {
-        return fileNameBlockLocationMappingMap.get(fileName);
+        return blockMappings.get(fileName);
     }
 
     /**
      * given a file, retrieve its metadata then return the number of blocks
      * if fileSize % BLOCK_SIZE == 0: then every block will be filled exactly to BLOCK_SIZE
      * else: there will 1 extra block that is not completely filled
+     *
      * @param fileName
      * @return numberOfBlocks
      */
@@ -68,16 +72,15 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
     }
 
     /**
-     *
      * @param fileName
      * @return blockLocationMapping
      */
     private BlockLocationMapping generateBlockLocationMappings(String fileName) {
         FileMetadata fileMetadata = getFileMetadata(fileName);
         int numOfBlocks = calculateNumberOfBlocksForFile(fileName);
-        int numOfDNs = dataNodeList.size();
+        int numOfDNs = dataNodeTimestamps.size();
         List<BlockLocation> blockLocations = Collections.synchronizedList(new ArrayList<>());
-        List<DataNodeInfo> currentDataNodes = Collections.synchronizedList(new ArrayList<>(dataNodeList.keySet()));
+        List<DataNodeInfo> currentDataNodes = Collections.synchronizedList(new ArrayList<>(dataNodeTimestamps.keySet()));
 
         // follows a modified version of the apache cassandra token ring hashing algorithm
         // http://cassandra.apache.org/doc/latest/architecture/dynamo.html#consistent-hashing-using-a-token-ring
@@ -119,19 +122,19 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
         }
 
         // create a the protobuf BlockLocationMapping from the temp array
-
         return BlockLocationMapping
                 .newBuilder()
                 .addAllMapping(blockLocations)
+                .setFileInfo(fileMetadata)
                 .build();
     }
 
     private void removeDataNode(DataNodeInfo dataNodeInfo) {
-        dataNodeList.remove(dataNodeInfo);
+        dataNodeTimestamps.remove(dataNodeInfo);
     }
 
     private DataNodeInfo getDataNodeInfo(String address) {
-        for (DataNodeInfo info : dataNodeList.keySet()) {
+        for (DataNodeInfo info : dataNodeTimestamps.keySet()) {
             if (info.getIp().equals(address)) {
                 return info;
             }
@@ -149,14 +152,41 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
 
     }
 
+    /**
+     * loops through all the block mappings and sums the block sizes
+     * since there will be multiple DNs with the same node, we skip those
+     * @param fileName
+     * @return blockSize
+     */
+    private int getFileSize(String fileName) {
+        Set<BlockMetadata> seenBlocks = new HashSet<>();
+        int blockSize = 0;
+
+        if (!blockMappings.isEmpty()) {
+            for (BlockLocation blockLocation : blockMappings.get(fileName).getMappingList()) {
+                if (!seenBlocks.contains(blockLocation.getBlockInfo())) {
+                    seenBlocks.add(blockLocation.getBlockInfo());
+                    blockSize += blockLocation.getBlockInfo().getBlockSize();
+                }
+            }
+        }
+
+        return blockSize;
+    }
+
+    /**
+     * @param dataNodeInfo
+     * @return the set of blocks that we currently know the given DN has
+     */
     private Set<BlockMetadata> getBlocksForDN(DataNodeInfo dataNodeInfo) {
 
         Set<BlockMetadata> out = Collections.synchronizedSet(new HashSet<>());
-
-        for (BlockLocationMapping blockLocationMapping : fileNameBlockLocationMappingMap.values()) {
-            for (BlockLocation blockLocation : blockLocationMapping.getMappingList()) {
-                if (blockLocation.getDataNodeInfo().equals(dataNodeInfo)) {
-                    out.add(blockLocation.getBlockInfo());
+        if (!blockMappings.isEmpty()) {
+            for (BlockLocationMapping blockLocationMapping : blockMappings.values()) {
+                for (BlockLocation blockLocation : blockLocationMapping.getMappingList()) {
+                    if (blockLocation.getDataNodeInfo().equals(dataNodeInfo)) {
+                        out.add(blockLocation.getBlockInfo());
+                    }
                 }
             }
         }
@@ -164,9 +194,13 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
         return out;
     }
 
+    /**
+     * @param blockInfo
+     * @return a set of DNs that we currently know contain the given block
+     */
     private Set<DataNodeInfo> getDNsForBlock(BlockMetadata blockInfo) {
         Set<DataNodeInfo> out = Collections.synchronizedSet(new HashSet<>());
-        for (BlockLocation blockLocation : fileNameBlockLocationMappingMap.get(blockInfo.getFileName()).getMappingList()) {
+        for (BlockLocation blockLocation : blockMappings.get(blockInfo.getFileName()).getMappingList()) {
             if (blockLocation.getBlockInfo().equals(blockInfo)) {
                 out.add(blockLocation.getDataNodeInfo());
             }
@@ -178,6 +212,7 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
 
     /**
      * Called by Client to get a list of the current files
+     *
      * @param request
      * @param responseObserverWithFileList
      */
@@ -186,13 +221,14 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
                                        StreamObserver<FileList> responseObserverWithFileList) {
         responseObserverWithFileList.onNext(FileList
                 .newBuilder()
-                .addAllFiles(fileNameFileMetadataMap.values())
+                .addAllFiles(getCurrentFiles())
                 .build());
         responseObserverWithFileList.onCompleted();
     }
 
     /**
      * Called by DataNode's to report what blocks they have
+     * updates our in-memory mapping of blocks & dns
      * @param requestWithBlockReportFromDN
      * @param responseObserverWithStatus
      */
@@ -204,7 +240,7 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
         Set<BlockMetadata> knownBlocksForDN = getBlocksForDN(requestWithBlockReportFromDN.getDataNodeInfo());
 
         // update the last time heard timestamp for  this DN
-        dataNodeList.put(requestWithBlockReportFromDN.getDataNodeInfo(), System.currentTimeMillis());
+        dataNodeTimestamps.put(requestWithBlockReportFromDN.getDataNodeInfo(), System.currentTimeMillis());
 
         for (BlockMetadata blockReport : blockReportList) {
             if (!knownBlocksForDN.contains(blockReport)) {
@@ -216,30 +252,39 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
                         .setDataNodeInfo(requestWithBlockReportFromDN.getDataNodeInfo())
                         .build();
 
-                if (fileNameBlockLocationMappingMap.containsKey(blockReport.getFileName())) {
-                    // if we already have a record for the corresponding file, then just update it
-                    fileNameBlockLocationMappingMap.put(blockReport.getFileName(),
-                            fileNameBlockLocationMappingMap.get(blockReport.getFileName())
-                                    .toBuilder()
-                                    .addMapping(location)
-                                    .build());
-                } else {
-                    // we need to create a new record for the file as well
-                    fileNameBlockLocationMappingMap.put(blockReport.getFileName(),
-                            BlockLocationMapping.newBuilder().addMapping(location).build());
-                }
+                FileMetadata currentFile = FileMetadata.newBuilder()
+                        .setName(blockReport.getFileName())
+                        .setSize(blockReport.getBlockSize() + getFileSize(blockReport.getFileName()))
+                        .build();
 
+                // if we already have a record for the corresponding file, then just update it
+                blockMappings.put(blockReport.getFileName(),
+                        blockMappings.getOrDefault(blockReport.getFileName(),
+                                BlockLocationMapping.getDefaultInstance())
+                                .toBuilder()
+                                .addMapping(location)
+                                .setFileInfo(currentFile)
+                                .build());
             }
+
         }
 
         responseObserverWithStatus.onNext(Status.newBuilder().setSuccess(true).build());
         responseObserverWithStatus.onCompleted();
     }
 
+    /**
+     * Called by client to retrieve current known block location mappings
+     *
+     * @param requestWithFileMetadata
+     * @param responseObserverWithBlockLocationMapping
+     */
     @Override
     public synchronized void getBlockLocations(FileMetadata requestWithFileMetadata,
                                                StreamObserver<BlockLocationMapping> responseObserverWithBlockLocationMapping) {
         // TODO: don't return blocks from DN's that have responded > HEART_BEAT_INTERVAL
+        // TODO: remove the blocks from DN's that have responded > HEART_BEAT_INTERVAL
+
         // TODO: print warning when DN's have responded > HEART_BEAT_INTERVAL
         responseObserverWithBlockLocationMapping
                 .onNext(getBlockLocationMapping(requestWithFileMetadata.getName()));
@@ -247,26 +292,23 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
         responseObserverWithBlockLocationMapping.onCompleted();
     }
 
-
     /**
-     * logic to assign blocks to data nodes
+     * Called by client to assign blocks to data nodes
      */
     @Override
     public synchronized void assignBlocks(FileMetadata requestWithFileMetadata,
                                           StreamObserver<BlockLocationMapping> responseObserverWithBlockLocationMapping) {
 
         String fileName = requestWithFileMetadata.getName();
-        // store the file metadata
-        fileNameFileMetadataMap.put(fileName, requestWithFileMetadata);
-        // TODO: write out the updated file list: persistFileInfo()
+        // TODO: write out the updated file list: persistFiles() APPEND
+
         // generate the assignment for the file
         BlockLocationMapping blockLocationMapping =
                 generateBlockLocationMappings(fileName);
-        // store the assignment
-        fileNameBlockLocationMappingMap.put(fileName, blockLocationMapping);
-        // send the assignment mapping to the client
+        // store the assignment metadata
+        blockMappings.put(fileName, blockLocationMapping);
+        // respond with the mapping assignments
         responseObserverWithBlockLocationMapping.onNext(blockLocationMapping);
-        //
         responseObserverWithBlockLocationMapping.onCompleted();
     }
 
@@ -293,13 +335,13 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
             @Override
             public void run() {
                 // Use stderr here since the logger may have been reset by its JVM shutdown hook.
-                System.err.println("*** shutting down gRPC server since JVM is shutting down");
+                logger.log(Level.INFO, "*** shutting down gRPC server since JVM is shutting down");
                 try {
                     NameNode.this.stopServer();
                 } catch (InterruptedException e) {
                     e.printStackTrace(System.err);
                 }
-                System.err.println("*** server shut down");
+                logger.log(Level.INFO, "*** server shut down");
             }
         });
     }

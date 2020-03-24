@@ -9,10 +9,7 @@ import io.grpc.StatusRuntimeException;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -47,31 +44,26 @@ public class Client {
         }
 
         public void writeBlock(Block block) throws IOException, RuntimeException {
-            if (BLOCK_SIZE != block.getBlockInfo().getBlockSize()) {
-                throw new RuntimeException("mismatch block size");
-            } else {
-                int offset = block.getBlockInfo().getIndex() * BLOCK_SIZE;
 
-                randomAccessFile.write(block.getContent().toByteArray(), offset, BLOCK_SIZE);
-            }
+            int offset = block.getBlockInfo().getIndex() * BLOCK_SIZE;
+
+            randomAccessFile.write(block.getContent().toByteArray(), offset, block.getBlockInfo().getBlockSize());
+
         }
 
         public Block readBlock(BlockMetadata blockMetadata) throws IOException {
-            if (BLOCK_SIZE != blockMetadata.getBlockSize()) {
-                throw new RuntimeException("mismatch block size");
-            } else {
-                int offset = blockMetadata.getIndex() * BLOCK_SIZE;
 
-                byte[] tempDataBuffer = new byte[BLOCK_SIZE];
-                randomAccessFile.seek(offset);
-                randomAccessFile.read(tempDataBuffer);
+            int offset = blockMetadata.getIndex() * BLOCK_SIZE;
 
-                return Block.newBuilder()
-                        .setBlockInfo(blockMetadata)
-                        .setContent(ByteString.copyFrom(tempDataBuffer))
-                        .build();
+            byte[] tempDataBuffer = new byte[blockMetadata.getBlockSize()];
+            randomAccessFile.seek(offset);
+            randomAccessFile.read(tempDataBuffer);
 
-            }
+            return Block.newBuilder()
+                    .setBlockInfo(blockMetadata)
+                    .setContent(ByteString.copyFrom(tempDataBuffer))
+                    .build();
+
         }
 
         public void close() throws IOException {
@@ -163,15 +155,17 @@ public class Client {
 
     private void put(String fileName) throws IOException {
         ClientFile clientFile = new ClientFile(fileName);
+        FileMetadata fileMetadata = FileMetadata.newBuilder()
+                .setSize(clientFile.randomAccessFile.length())
+                .setName(fileName)
+                .build();
+        HashMap<DataNodeInfo, Long> bytesWrittenSuccessfully = new HashMap<>();
 
         try {
-            BlockLocationMapping responseWithBlockLocationMapping = nameNodeBlockingStub.assignBlocks(
-                    FileMetadata.newBuilder()
-                            .setSize((int) clientFile.randomAccessFile.length())
-                            .setName(fileName)
-                            .build());
+            BlockLocationMapping responseWithBlockLocationMapping = nameNodeBlockingStub.assignBlocks(fileMetadata);
 
             for (BlockLocation blockLocation : responseWithBlockLocationMapping.getMappingList()) {
+
                 DataNodeConnection currentDataNodeConnection;
                 // we only need to open a connection to a data node once, this saves resources
                 if (openDataNodes.containsKey(blockLocation.getDataNodeInfo())) {
@@ -181,27 +175,81 @@ public class Client {
                     currentDataNodeConnection = new DataNodeConnection(blockLocation.getDataNodeInfo());
                 }
 
+                bytesWrittenSuccessfully.put(blockLocation.getDataNodeInfo(),
+                        bytesWrittenSuccessfully.getOrDefault(
+                                blockLocation.getDataNodeInfo(), 0L)
+                                + blockLocation.getBlockInfo().getBlockSize());
+
                 Block blockToWrite = clientFile.readBlock(blockLocation.getBlockInfo());
 
                 try {
                     Status responseWithSuccess = currentDataNodeConnection.writeBlock(blockToWrite);
                     if (!responseWithSuccess.getSuccess()) {
-                        throw new RuntimeException("Error writing block to DataNode" + currentDataNodeConnection.getDataNodeInfo());
+                        throw new RuntimeException("Error writing block to DataNode"
+                                + currentDataNodeConnection.getDataNodeInfo());
                     }
-
 
                 } catch (StatusRuntimeException e) {
                     if (e.getStatus().getCode() == io.grpc.Status.Code.DEADLINE_EXCEEDED) {
-                        logger.log(Level.SEVERE, "Could not contact DataNode " + blockLocation.getDataNodeInfo() + ", continuing to try others", e);
+                        logger.log(Level.SEVERE, "Could not contact DataNode "
+                                + blockLocation.getDataNodeInfo() + ", continuing to try others", e);
                     }
                 }
             }
 
-        } catch (StatusRuntimeException e) {
-            logger.log(Level.SEVERE, "Could not get block mapping from the NameNode.", e);
+            if (Collections.max(bytesWrittenSuccessfully.values()) < fileMetadata.getSize()) {
+                throw new RuntimeException("Error: unable completely send file to any Data Node");
+            }
+
+        } catch (RuntimeException e) {
+            logger.log(Level.SEVERE, "Was not able to successfully put file because: " + e.getMessage(), e);
         }
 
         clientFile.close();
+    }
+
+    public void list() {
+        // TODO: remove debug data
+        ListFilesParam request = ListFilesParam.getDefaultInstance();
+
+        try {
+            FileList response = nameNodeBlockingStub.listFiles(request);
+            System.out.println("got files: " + response.getFilesList());
+        } catch (StatusRuntimeException e) {
+            logger.log(Level.SEVERE, "err");
+        }
+    }
+
+    private void testDNHeartbeat() {
+
+        // TODO: remove debug data
+        BlockReport request = BlockReport
+                .newBuilder()
+                .addBlocks(BlockMetadata.newBuilder()
+                        .setFileName("test.txt")
+                        .setIndex(0)
+                        .setBlockSize(64)
+                        .build())
+                .addBlocks(BlockMetadata.newBuilder()
+                        .setFileName("test.txt")
+                        .setIndex(1)
+                        .setBlockSize(64)
+                        .build())
+                .setDataNodeInfo(DataNodeInfo.newBuilder()
+                        .setIp("69.69.69.70")
+                        .setPort(6942)
+                        .build())
+                .build();
+
+        try {
+            Status response = nameNodeBlockingStub.heartBeat(request);
+            System.out.println("sent heartbeat: " + response.getSuccess());
+            if (!response.getSuccess()) {
+                throw new RuntimeException("Error occurred");
+            }
+        } catch (StatusRuntimeException e) {
+            logger.log(Level.SEVERE, "dn heartbeat test failed");
+        }
     }
 
     public static void main(String[] args) throws InterruptedException, IOException {
@@ -244,9 +292,11 @@ public class Client {
             // TODO: look at file size vs block metadatas returned from NN
 
 
-            client.get("test.txt");
 
-            client.put("test.txt");
+            client.testDNHeartbeat();
+            client.list();
+            client.get("test.txt");
+//            client.put("test.txt");
             client.get("test.txt");
 
         } finally {
