@@ -30,4 +30,19 @@ public interface BlockLocationMappingOrBuilder extends
    */
   ds.hdfs.generated.BlockLocationOrBuilder getMappingOrBuilder(
       int index);
+
+  /**
+   * <code>.ds.hdfs.FileMetadata file_info = 2;</code>
+   * @return Whether the fileInfo field is set.
+   */
+  boolean hasFileInfo();
+  /**
+   * <code>.ds.hdfs.FileMetadata file_info = 2;</code>
+   * @return The fileInfo.
+   */
+  ds.hdfs.generated.FileMetadata getFileInfo();
+  /**
+   * <code>.ds.hdfs.FileMetadata file_info = 2;</code>
+   */
+  ds.hdfs.generated.FileMetadataOrBuilder getFileInfoOrBuilder();
 }

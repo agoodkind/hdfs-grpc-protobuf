@@ -20,8 +20,8 @@ public interface FileMetadataOrBuilder extends
       getNameBytes();
 
   /**
-   * <code>int32 size = 2;</code>
+   * <code>int64 size = 2;</code>
    * @return The size.
    */
-  int getSize();
+  long getSize();
 }

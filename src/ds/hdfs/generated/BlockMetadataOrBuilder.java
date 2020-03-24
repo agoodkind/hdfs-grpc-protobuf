@@ -30,19 +30,4 @@ public interface BlockMetadataOrBuilder extends
    */
   com.google.protobuf.ByteString
       getFileNameBytes();
-
-  /**
-   * <code>.ds.hdfs.FileMetadata file_info = 4;</code>
-   * @return Whether the fileInfo field is set.
-   */
-  boolean hasFileInfo();
-  /**
-   * <code>.ds.hdfs.FileMetadata file_info = 4;</code>
-   * @return The fileInfo.
-   */
-  ds.hdfs.generated.FileMetadata getFileInfo();
-  /**
-   * <code>.ds.hdfs.FileMetadata file_info = 4;</code>
-   */
-  ds.hdfs.generated.FileMetadataOrBuilder getFileInfoOrBuilder();
 }

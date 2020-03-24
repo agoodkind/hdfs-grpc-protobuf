@@ -18,6 +18,7 @@ service NameNode {
     rpc listFiles (ListFilesParam) returns (FileList) {};
 }
 
+// required by grpc so we can have no parameters
 message ListFilesParam {}
 
 service DataNode {
@@ -37,14 +38,13 @@ message Block {
 
 message FileMetadata {
     string name = 1;
-    int32 size = 2;
+    int64 size = 2;
 }
 
 message BlockMetadata {
     int32 index = 1;
     int32 block_size = 2;
     string file_name = 3;
-    FileMetadata file_info = 4;
 }
 
 message DataNodeInfo {
@@ -59,14 +59,13 @@ message BlockLocation {
 
 message BlockLocationMapping {
     repeated BlockLocation mapping = 1;
+    FileMetadata file_info = 2;
 }
 
 message BlockReport {
     DataNodeInfo data_node_info = 1;
     repeated BlockMetadata blocks = 2;
 }
-
-
 
 message FileList {
     repeated FileMetadata files = 1;

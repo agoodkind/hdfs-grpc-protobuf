@@ -57,7 +57,7 @@ private static final long serialVersionUID = 0L;
           }
           case 16: {
 
-            size_ = input.readInt32();
+            size_ = input.readInt64();
             break;
           }
           default: {
@@ -129,12 +129,12 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int SIZE_FIELD_NUMBER = 2;
-  private int size_;
+  private long size_;
   /**
-   * <code>int32 size = 2;</code>
+   * <code>int64 size = 2;</code>
    * @return The size.
    */
-  public int getSize() {
+  public long getSize() {
     return size_;
   }
 
@@ -155,8 +155,8 @@ private static final long serialVersionUID = 0L;
     if (!getNameBytes().isEmpty()) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 1, name_);
     }
-    if (size_ != 0) {
-      output.writeInt32(2, size_);
+    if (size_ != 0L) {
+      output.writeInt64(2, size_);
     }
     unknownFields.writeTo(output);
   }
@@ -170,9 +170,9 @@ private static final long serialVersionUID = 0L;
     if (!getNameBytes().isEmpty()) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, name_);
     }
-    if (size_ != 0) {
+    if (size_ != 0L) {
       size += com.google.protobuf.CodedOutputStream
-        .computeInt32Size(2, size_);
+        .computeInt64Size(2, size_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -207,7 +207,8 @@ private static final long serialVersionUID = 0L;
     hash = (37 * hash) + NAME_FIELD_NUMBER;
     hash = (53 * hash) + getName().hashCode();
     hash = (37 * hash) + SIZE_FIELD_NUMBER;
-    hash = (53 * hash) + getSize();
+    hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+        getSize());
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
     return hash;
@@ -343,7 +344,7 @@ private static final long serialVersionUID = 0L;
       super.clear();
       name_ = "";
 
-      size_ = 0;
+      size_ = 0L;
 
       return this;
     }
@@ -425,7 +426,7 @@ private static final long serialVersionUID = 0L;
         name_ = other.name_;
         onChanged();
       }
-      if (other.getSize() != 0) {
+      if (other.getSize() != 0L) {
         setSize(other.getSize());
       }
       this.mergeUnknownFields(other.unknownFields);
@@ -533,32 +534,32 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private int size_ ;
+    private long size_ ;
     /**
-     * <code>int32 size = 2;</code>
+     * <code>int64 size = 2;</code>
      * @return The size.
      */
-    public int getSize() {
+    public long getSize() {
       return size_;
     }
     /**
-     * <code>int32 size = 2;</code>
+     * <code>int64 size = 2;</code>
      * @param value The size to set.
      * @return This builder for chaining.
      */
-    public Builder setSize(int value) {
+    public Builder setSize(long value) {
       
       size_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>int32 size = 2;</code>
+     * <code>int64 size = 2;</code>
      * @return This builder for chaining.
      */
     public Builder clearSize() {
       
-      size_ = 0;
+      size_ = 0L;
       onChanged();
       return this;
     }
