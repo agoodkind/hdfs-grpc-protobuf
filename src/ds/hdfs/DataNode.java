@@ -1,9 +1,8 @@
 package ds.hdfs;
 
-import ds.hdfs.generated.Block;
-import ds.hdfs.generated.BlockMetadata;
-import ds.hdfs.generated.DataNodeGrpc;
-import ds.hdfs.generated.Status;
+import ds.hdfs.generated.*;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import io.grpc.BindableService;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
@@ -14,18 +13,36 @@ import java.io.IOException;
 
 public class DataNode extends DataNodeGrpc.DataNodeImplBase {
 
-    /**
-     * DataNode implementation
-     */
-
     @java.lang.Override
-    public void readBlock(BlockMetadata request, io.grpc.stub.StreamObserver<Status> responseObserver) {
+    public void readBlock(BlockMetadata request, io.grpc.stub.StreamObserver<Block> responseObserver) {
+
+        String fileName = request.getFileName() + "_" + request.getIndex();
+
+        try {
+            FileInputStream file = new FileInputStream(fileName);
+            Block block = Block.parseDelimitedFrom(file);
+            responseObserver.onNext(block);
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+        responseObserver.onCompleted();
 
     }
 
     @java.lang.Override
     public void writeBlock(Block request, io.grpc.stub.StreamObserver<Status> responseObserver) {
 
+        String fileName = request.getBlockInfo().getFileName() + "_" + request.getBlockInfo().getIndex();
+
+        try {
+            FileOutputStream file = new FileOutputStream(fileName);
+            request.writeDelimitedTo(file);
+            responseObserver.onNext(Status.newBuilder().setSuccess(true).build());
+        } catch (Exception e) {
+            System.out.println(e);
+            responseObserver.onNext(Status.newBuilder().setSuccess(false).build());
+        }
+        responseObserver.onCompleted();
     }
 
     /**
@@ -63,18 +80,29 @@ public class DataNode extends DataNodeGrpc.DataNodeImplBase {
         });
     }
 
+    private void blockUntilShutdown() throws InterruptedException {
+        if (server != null) {
+            server.awaitTermination();
+        }
+    }
+
     private void stopServer() throws InterruptedException {
         if (server != null) {
             server.shutdown().awaitTermination(30, TimeUnit.SECONDS);
         }
     }
 
-    public static void main(String[] args) throws IOException {
+    private void sendHeartBeat() {
+
+    }
+
+    public static void main(String[] args) throws IOException, InterruptedException {
         // read in config file
         // we need port
 //        String config = args[0 or 1 i cant remember];
         int port = 9000;
         final DataNode dnServer = new DataNode();
         dnServer.startServer(port);
+        dnServer.blockUntilShutdown();
     }
 }
