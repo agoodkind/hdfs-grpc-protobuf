@@ -9,31 +9,37 @@ import java.io.*;
 public class Config {
 
     @SerializedName("block_size_bytes")
-    public static int BLOCK_SIZE_BYTES = 64;
+    public int BLOCK_SIZE_BYTES = 64;
     @SerializedName("name_node_ip")
-    public static String NAME_NODE_IP = "127.0.0.1";
+    public String NAME_NODE_IP = "127.0.0.1";
     @SerializedName("name_node_port")
-    public static int NAME_NODE_PORT = 50051;
+    public int NAME_NODE_PORT = 50051;
     @SerializedName("replication_factor")
-    public static int REPLICATION_FACTOR = 2;
+    public int REPLICATION_FACTOR = 2;
     @SerializedName("heartbeat_interval_ms")
-    public static int HEARTBEAT_INTERVAL_MS = 10000;
+    public int HEARTBEAT_INTERVAL_MS = 10000;
+    @SerializedName("name_node_metadata_persist_file")
+    public String NAME_NODE_METADATA_PERSIST_FILE = "persist/persisted_metadata.bin";
 
     public static Config readConfig(String fileName) throws FileNotFoundException {
         return new Gson().fromJson(new BufferedReader(new FileReader(fileName)), Config.class);
     }
 
-    public static Gson writeConfig(String fileName, Config config) throws IOException {
+    public static Gson writeDefaultConfig(String fileName) throws IOException {
         FileWriter out = new FileWriter(fileName);
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder
                 .excludeFieldsWithModifiers(java.lang.reflect.Modifier.TRANSIENT)
                 .setPrettyPrinting();
         Gson gson = gsonBuilder.create();
-        gson.toJson(config, out);
+        gson.toJson(new Config(), out);
         out.flush();
         out.close();
 
         return gson;
+    }
+
+    public static void main(String[] args) throws IOException {
+        Config.writeDefaultConfig("config/default_config.json");
     }
 }
