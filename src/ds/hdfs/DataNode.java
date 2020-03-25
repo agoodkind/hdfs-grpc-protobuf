@@ -19,36 +19,32 @@ import io.grpc.StatusRuntimeException;
 
 public class DataNode extends DataNodeGrpc.DataNodeImplBase {
     Config config;
+    BlockStore blockStore;
+
     private final NameNodeGrpc.NameNodeBlockingStub nameNodeBlockingStub;
+
+    private static final Logger logger = Logger.getLogger(DataNode.class.getName());
+    private Server server;
 
     public DataNode(Channel channel) {
         nameNodeBlockingStub = NameNodeGrpc.newBlockingStub(channel);
+        blockStore = new BlockStore("persist/block_store");
     }
 
     @java.lang.Override
     public void readBlock(BlockMetadata request, io.grpc.stub.StreamObserver<Block> responseObserver) {
-
-        String fileName = request.getFileName() + "_" + request.getIndex();
-
         try {
-            FileInputStream file = new FileInputStream(fileName);
-            Block block = Block.parseDelimitedFrom(file);
-            responseObserver.onNext(block);
+            responseObserver.onNext(blockStore.getBlock(request));
         } catch (Exception e) {
             System.out.println(e);
         }
         responseObserver.onCompleted();
-
     }
 
     @java.lang.Override
     public void writeBlock(Block request, io.grpc.stub.StreamObserver<Status> responseObserver) {
-
-        String fileName = request.getBlockInfo().getFileName() + "_" + request.getBlockInfo().getIndex();
-
         try {
-            FileOutputStream file = new FileOutputStream(fileName);
-            request.writeDelimitedTo(file);
+            blockStore.persistBlock(request);
             responseObserver.onNext(Status.newBuilder().setSuccess(true).build());
         } catch (Exception e) {
             System.out.println(e);
@@ -56,14 +52,6 @@ public class DataNode extends DataNodeGrpc.DataNodeImplBase {
         }
         responseObserver.onCompleted();
     }
-
-    /**
-     * Server stuff
-     */
-
-    private static final Logger logger = Logger.getLogger(NameNode.class.getName());
-
-    private Server server;
 
     private void startServer(int port) throws IOException {
 
@@ -105,8 +93,7 @@ public class DataNode extends DataNodeGrpc.DataNodeImplBase {
     }
 
     private void sendHeartBeat() {
-
-        BlockReport report = BlockReport.newBuilder().build();
+        BlockReport report = BlockReport.newBuilder().addAllBlocks(blockStore.getMetaDataList()).build();
 
         nameNodeBlockingStub.heartBeat(report);
     }
