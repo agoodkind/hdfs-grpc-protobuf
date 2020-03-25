@@ -3,15 +3,27 @@ package ds.hdfs;
 import ds.hdfs.generated.*;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import io.grpc.BindableService;
-import io.grpc.Server;
-import io.grpc.ServerBuilder;
-import io.grpc.stub.StreamObserver;
+
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import java.io.IOException;
 
+import io.grpc.BindableService;
+import io.grpc.Server;
+import io.grpc.ServerBuilder;
+import io.grpc.stub.StreamObserver;
+import io.grpc.Channel;
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
+import io.grpc.StatusRuntimeException;
+
 public class DataNode extends DataNodeGrpc.DataNodeImplBase {
+    Config config;
+    private final NameNodeGrpc.NameNodeBlockingStub nameNodeBlockingStub;
+
+    public DataNode(Channel channel) {
+        nameNodeBlockingStub = NameNodeGrpc.newBlockingStub(channel);
+    }
 
     @java.lang.Override
     public void readBlock(BlockMetadata request, io.grpc.stub.StreamObserver<Block> responseObserver) {
@@ -94,15 +106,31 @@ public class DataNode extends DataNodeGrpc.DataNodeImplBase {
 
     private void sendHeartBeat() {
 
+        BlockReport report = BlockReport.newBuilder().build();
+
+        nameNodeBlockingStub.heartBeat(report);
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        // read in config file
-        // we need port
-//        String config = args[0 or 1 i cant remember];
+        if(args.length == 1) {
+            config = Config.readConfig(args[0]);
+        } else {
+            config = new Config();
+        }
+
+        // Create a communication channel to the server, known as a Channel. Channels are thread-safe
+        // and reusable. It is common to create channels at the beginning of your application and reuse
+        // them until the application shuts down.
+        ManagedChannel channel = ManagedChannelBuilder.forAddress(config.NAME_NODE_IP, config.NAME_NODE_PORT)
+                // Channels are secure by default (via SSL/TLS). For the example we disable TLS to avoid
+                // needing certificates.
+                .usePlaintext()
+                .build();
+
         int port = 9000;
-        final DataNode dnServer = new DataNode();
-        dnServer.startServer(port);
-        dnServer.blockUntilShutdown();
+        DataNode dataNodeServer = new DataNode(channel);
+
+        dataNodeServer.startServer(port);
+        dataNodeServer.blockUntilShutdown();
     }
 }
