@@ -397,7 +397,13 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        final NameNode nameNodeServer = new NameNode(Config.readConfig(args[0]));
+        final NameNode nameNodeServer;
+        if (args.length == 1) {
+            nameNodeServer = new NameNode(Config.readConfig(args[0]));
+        } else {
+            nameNodeServer = new NameNode();
+        }
+
 
         nameNodeServer.startServer();
         nameNodeServer.blockUntilShutdown();

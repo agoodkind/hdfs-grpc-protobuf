@@ -118,10 +118,10 @@ public class Client {
         }
     }
 
-    private void get(String fileName) throws IOException {
+    private void get(String remoteFile, String localFile) throws IOException {
 
         FileMetadata request = FileMetadata.newBuilder()
-                .setName(fileName)
+                .setName(remoteFile)
                 .build();
 
         // TODO: assemble metadata and get blocks from nodes
@@ -133,7 +133,8 @@ public class Client {
 
         try {
             BlockLocationMapping responseWithBlockLocationMapping = nameNodeBlockingStub.getBlockLocations(request);
-
+// TODO: implement this
+//
 //            for (BlockLocation blockLocation : response.getMappingList()) {
 //                DataNodeConnection currentDataNodeConnection;
 //
@@ -152,11 +153,11 @@ public class Client {
         }
     }
 
-    private void put(String fileName) throws IOException {
-        ClientFile clientFile = new ClientFile(fileName);
+    private void put(String localFile, String remoteFile) throws IOException {
+        ClientFile clientFile = new ClientFile(localFile);
         FileMetadata fileMetadata = FileMetadata.newBuilder()
                 .setSize(clientFile.randomAccessFile.length())
-                .setName(fileName)
+                .setName(remoteFile)
                 .build();
         HashMap<DataNodeInfo, Long> bytesWrittenSuccessfully = new HashMap<>();
 
@@ -252,60 +253,50 @@ public class Client {
     }
 
     public static void main(String[] args) throws InterruptedException, IOException {
-// Access a service running on the local machine on port 50051
-        int BLOCK_SIZE = 64;
-
-        String target = "localhost:50051";
+        Config config;
         // Allow passing in the user and target strings as command line arguments
-//        if (args.length > 0) {
-//            if ("--help".equals(args[0])) {
-//                System.err.println("Usage: [name [target]]");
-//                System.err.println("");
-//                System.err.println("  name    The name you wish to be greeted by. Defaults to " + user);
-//                System.err.println("  target  The server to connect to. Defaults to " + target);
-//                System.exit(1);
-//            }
-//            user = args[0];
-//        }
-//        if (args.length > 1) {
-//            target = args[1];
-//        }
+        if (args.length < 3) {
+                System.err.println("Usage: <command> <file> <file> [configFile]");
+                System.err.println("");
+                System.err.println("\tget hdfs_file local_file\tWrites a file to the local filesystem from HDFS");
+                System.err.println("\tput local_file hdfs_file\tWrites a new file to HDFS from local file system");
+                System.err.println("\tlist                    \tDisplays all files present in HDFS");
+                System.exit(1);
+        } else {
+            if (args.length > 3) {
+                config = Config.readConfig(args[3]);
+            } else {
+                config = new Config();
+            }
 
-        // Create a communication channel to the server, known as a Channel. Channels are thread-safe
-        // and reusable. It is common to create channels at the beginning of your application and reuse
-        // them until the application shuts down.
-        ManagedChannel channel = ManagedChannelBuilder.forTarget(target)
-                // Channels are secure by default (via SSL/TLS). For the example we disable TLS to avoid
-                // needing certificates.
-                .usePlaintext()
-                .build();
+            // Create a communication channel to the server, known as a Channel. Channels are thread-safe
+            // and reusable. It is common to create channels at the beginning of your application and reuse
+            // them until the application shuts down.
+            ManagedChannel channel = ManagedChannelBuilder.forAddress(config.NAME_NODE_IP, config.NAME_NODE_PORT)
+                    // Channels are secure by default (via SSL/TLS). For the example we disable TLS to avoid
+                    // needing certificates.
+                    .usePlaintext()
+                    .build();
 
-        Client client = new Client(channel, BLOCK_SIZE);
+            Client client = new Client(channel, config.BLOCK_SIZE_BYTES);
 
+            try {
+                if (args[0].equals("get")) {
 
-        try {
-            // TODO: read in config data
-            // TODO: read in NN config
-            // TODO: remove debug data
-            // TODO: implemennt help & commands
-            // TODO: look at file size vs block metadatas returned from NN
+                    client.get(args[1], args[2]);
 
+                } else if (args[0].equals("put")) {
+                    client.put(args[1], args[2]);
+                }
 
+            } finally {
+                // ManagedChannels use resources like threads and TCP connections. To prevent leaking these
+                // resources the channel should be shut down when it will no longer be used. If it may be used
+                // again leave it running.
 
-            client.testDNHeartbeat();
-            client.list();
-            client.get("test.txt");
-//            client.put("test.txt");
-            client.get("test.txt");
-
-        } finally {
-            // ManagedChannels use resources like threads and TCP connections. To prevent leaking these
-            // resources the channel should be shut down when it will no longer be used. If it may be used
-            // again leave it running.
-
-            client.closeDNConnections();
-            channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
-
+                client.closeDNConnections();
+                channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
+            }
         }
     }
 }
