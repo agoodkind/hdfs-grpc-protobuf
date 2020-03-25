@@ -5,6 +5,7 @@ import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -13,31 +14,32 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-
 public class NameNode extends NameNodeGrpc.NameNodeImplBase {
 
-    private static int BLOCK_SIZE;
-    private static int PORT_NUM;
-    private static int REPLICATION_FACTOR = 2;
-    private static int HEARTBEART_INTERVAL_MS = 10000;
+    Config config;
     private ConcurrentHashMap<String, BlockLocationMapping> blockMappings;
     private ConcurrentHashMap<DataNodeInfo, Long> dataNodeTimestamps;
 
-    public NameNode(int portNum, int blockSize) {
-        BLOCK_SIZE = blockSize;
-        PORT_NUM = portNum;
+    public NameNode() {
+        this.config = new Config();
         blockMappings = new ConcurrentHashMap<>();
         dataNodeTimestamps = new ConcurrentHashMap<>();
     }
 
-    /**
-     * for a given filename return its a metadata
-     *
-     * @param fileName
-     * @return fileMetadata
-     */
-    private FileMetadata getFileMetadata(String fileName) {
-        return blockMappings.get(fileName).getFileInfo();
+    public NameNode(int portNum, int blockSize, int replicationFactor, int heartbeatInvtervalMS, String persistFile) {
+        this();
+        Config config = new Config();
+        config.NAME_NODE_PORT = portNum;
+        config.BLOCK_SIZE_BYTES = blockSize;
+        config.REPLICATION_FACTOR = replicationFactor;
+        config.HEARTBEAT_INTERVAL_MS = heartbeatInvtervalMS;
+        config.NAME_NODE_METADATA_PERSIST_FILE = persistFile;
+
+    }
+
+    public NameNode(Config config) {
+        this();
+        this.config = config;
     }
 
     /**
@@ -62,25 +64,27 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
      * given a file, retrieve its metadata then return the number of blocks
      * if fileSize % BLOCK_SIZE == 0: then every block will be filled exactly to BLOCK_SIZE
      * else: there will 1 extra block that is not completely filled
+     * aka: 0 < len(Nth block) <= BLOCK_SIZE
      *
-     * @param fileName
+     * @param fileMetadata
      * @return numberOfBlocks
      */
-    private int calculateNumberOfBlocksForFile(String fileName) {
-        long fileSize = getFileMetadata(fileName).getSize();
-        return (int) Math.ceil((double) fileSize / BLOCK_SIZE);
+    private int calculateNumBlocks(FileMetadata fileMetadata) {
+        long fileSize = fileMetadata.getSize();
+        return (int) Math.ceil((double) fileSize / config.BLOCK_SIZE_BYTES);
     }
 
     /**
-     * @param fileName
+     * @param fileMetadata
      * @return blockLocationMapping
      */
-    private BlockLocationMapping generateBlockLocationMappings(String fileName) {
-        FileMetadata fileMetadata = getFileMetadata(fileName);
-        int numOfBlocks = calculateNumberOfBlocksForFile(fileName);
+    private BlockLocationMapping generateBlockMappings(FileMetadata fileMetadata) {
+
+        int numOfBlocks = calculateNumBlocks(fileMetadata);
         int numOfDNs = dataNodeTimestamps.size();
         List<BlockLocation> blockLocations = Collections.synchronizedList(new ArrayList<>());
-        List<DataNodeInfo> currentDataNodes = Collections.synchronizedList(new ArrayList<>(dataNodeTimestamps.keySet()));
+        List<DataNodeInfo> currentDataNodes
+                = Collections.synchronizedList(new ArrayList<>(dataNodeTimestamps.keySet()));
 
         // follows a modified version of the apache cassandra token ring hashing algorithm
         // http://cassandra.apache.org/doc/latest/architecture/dynamo.html#consistent-hashing-using-a-token-ring
@@ -95,7 +99,7 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
         int j = 0;
         for (int i = 0; i < numOfBlocks; i++) {
             int k = 0;
-            while (k < REPLICATION_FACTOR) {
+            while (k < config.REPLICATION_FACTOR) {
 
                 if (j >= numOfDNs) {
                     j -= numOfDNs;
@@ -108,7 +112,7 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
                         .setDataNodeInfo(currentDataNodes.get(j))
                         .setBlockInfo(BlockMetadata
                                 .newBuilder()
-                                .setBlockSize(BLOCK_SIZE)
+                                .setBlockSize(config.BLOCK_SIZE_BYTES)
                                 .setIndex(i)
                                 .setFileName(fileMetadata.getName())
                                 .build())
@@ -133,15 +137,15 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
         dataNodeTimestamps.remove(dataNodeInfo);
     }
 
-    private DataNodeInfo getDataNodeInfo(String address) {
-        for (DataNodeInfo info : dataNodeTimestamps.keySet()) {
-            if (info.getIp().equals(address)) {
-                return info;
-            }
-        }
-
-        return null;
-    }
+//    private DataNodeInfo getDataNodeInfo(String address) {
+//        for (DataNodeInfo info : dataNodeTimestamps.keySet()) {
+//            if (info.getIp().equals(address)) {
+//                return info;
+//            }
+//        }
+//
+//        return null;
+//    }
 
     // no delete or edit operation required yet
 
@@ -150,28 +154,44 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
      */
     private void persistFileInfo() {
 
+        try {
+            FileOutputStream outputStream = new FileOutputStream(config.NAME_NODE_METADATA_PERSIST_FILE);
+            FileList.newBuilder()
+                    .addAllFiles(getCurrentFiles())
+                    .build()
+                    .writeTo(outputStream);
+
+            outputStream.flush();
+            outputStream.close();
+        } catch(IOException e) {
+            logger.log(Level.SEVERE, "unable to persist the list files");
+        }
     }
 
     /**
-     * loops through all the block mappings and sums the block sizes
+     * loops through all the block mappings and returns a set with all the block metadata
      * since there will be multiple DNs with the same node, we skip those
      * @param fileName
      * @return blockSize
      */
-    private int getFileSize(String fileName) {
+    private Set<BlockMetadata> getBlocksFromMappings(String fileName) {
         Set<BlockMetadata> seenBlocks = new HashSet<>();
-        int blockSize = 0;
 
         if (!blockMappings.isEmpty()) {
             for (BlockLocation blockLocation : blockMappings.get(fileName).getMappingList()) {
-                if (!seenBlocks.contains(blockLocation.getBlockInfo())) {
-                    seenBlocks.add(blockLocation.getBlockInfo());
-                    blockSize += blockLocation.getBlockInfo().getBlockSize();
-                }
+                seenBlocks.add(blockLocation.getBlockInfo());
             }
         }
 
-        return blockSize;
+        return seenBlocks;
+    }
+
+    private int getFileSize(String fileName) {
+        int fileSize = 0;
+        for (BlockMetadata blockMetadata : getBlocksFromMappings(fileName)) {
+            fileSize += blockMetadata.getBlockSize();
+        }
+        return fileSize;
     }
 
     /**
@@ -208,6 +228,25 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
         return out;
     }
 
+    /**
+     * remove all data nodes that haven't responded within HEARTBEAT_INTERVAL_MS
+     * this ensures that blocks won't be assigned to these DN's until they have come back online
+     */
+    private void pruneDataNodes() {
+        for (Map.Entry<DataNodeInfo, Long> dataNodeEntry : dataNodeTimestamps.entrySet()) {
+            if (System.currentTimeMillis() - dataNodeEntry.getValue() > config.HEARTBEAT_INTERVAL_MS) {
+                removeDataNode(dataNodeEntry.getKey());
+
+                logger.log(Level.WARNING, "DataNode at "
+                        + dataNodeEntry.getKey().getIp()
+                        + ":"
+                        + dataNodeEntry.getKey().getPort()
+                        + " has not sent a heartbeat within " + config.HEARTBEAT_INTERVAL_MS + "ms"
+                        + " and has been marked as offline.");
+            }
+        }
+    }
+
     //************* NameNode gRPC implementations *******************//
 
     /**
@@ -239,9 +278,6 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
         List<BlockMetadata> blockReportList = requestWithBlockReportFromDN.getBlocksList();
         Set<BlockMetadata> knownBlocksForDN = getBlocksForDN(requestWithBlockReportFromDN.getDataNodeInfo());
 
-        // update the last time heard timestamp for  this DN
-        dataNodeTimestamps.put(requestWithBlockReportFromDN.getDataNodeInfo(), System.currentTimeMillis());
-
         for (BlockMetadata blockReport : blockReportList) {
             if (!knownBlocksForDN.contains(blockReport)) {
                 // we don't have information on this block
@@ -271,6 +307,11 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
 
         responseObserverWithStatus.onNext(Status.newBuilder().setSuccess(true).build());
         responseObserverWithStatus.onCompleted();
+
+        // update the last time heard timestamp for  this DN
+        dataNodeTimestamps.put(requestWithBlockReportFromDN.getDataNodeInfo(), System.currentTimeMillis());
+        // prune old nodes
+        pruneDataNodes();
     }
 
     /**
@@ -282,9 +323,6 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
     @Override
     public synchronized void getBlockLocations(FileMetadata requestWithFileMetadata,
                                                StreamObserver<BlockLocationMapping> responseObserverWithBlockLocationMapping) {
-        // TODO: don't return blocks from DN's that have responded > HEART_BEAT_INTERVAL
-        // TODO: remove the blocks from DN's that have responded > HEART_BEAT_INTERVAL
-
         // TODO: print warning when DN's have responded > HEART_BEAT_INTERVAL
         responseObserverWithBlockLocationMapping
                 .onNext(getBlockLocationMapping(requestWithFileMetadata.getName()));
@@ -298,18 +336,18 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
     @Override
     public synchronized void assignBlocks(FileMetadata requestWithFileMetadata,
                                           StreamObserver<BlockLocationMapping> responseObserverWithBlockLocationMapping) {
-
-        String fileName = requestWithFileMetadata.getName();
-        // TODO: write out the updated file list: persistFiles() APPEND
-
+        // prune stale data nodes before assigning
+        pruneDataNodes();
         // generate the assignment for the file
         BlockLocationMapping blockLocationMapping =
-                generateBlockLocationMappings(fileName);
+                generateBlockMappings(requestWithFileMetadata);
         // store the assignment metadata
-        blockMappings.put(fileName, blockLocationMapping);
+        blockMappings.put(requestWithFileMetadata.getName(), blockLocationMapping);
         // respond with the mapping assignments
         responseObserverWithBlockLocationMapping.onNext(blockLocationMapping);
         responseObserverWithBlockLocationMapping.onCompleted();
+        // write out the updated file list: persistFiles()
+        persistFileInfo();
     }
 
     /**
@@ -325,12 +363,12 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
             throw new IllegalStateException("Already started");
         }
 
-        server = ServerBuilder.forPort(PORT_NUM)
-                .addService(new NameNode(PORT_NUM, BLOCK_SIZE))
+        server = ServerBuilder.forPort(config.NAME_NODE_PORT)
+                .addService(new NameNode(config))
                 .build()
                 .start();
 
-        logger.info("Server started, listening on " + PORT_NUM);
+        logger.info("Server started, listening on " + config.NAME_NODE_PORT);
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
@@ -359,16 +397,7 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        // TODO: read in the two config files
-        // TODO: read in persisted file info
-        // we need port
-        // and block size
-//        String config = args[0 or 1 i cant remember];
-        int blockSize = 64; // bytes
-        int portNum = 50051;
-
-        final NameNode nameNodeServer = new NameNode(portNum, blockSize);
-        // TEST:
+        final NameNode nameNodeServer = new NameNode(Config.readConfig(args[0]));
 
         nameNodeServer.startServer();
         nameNodeServer.blockUntilShutdown();

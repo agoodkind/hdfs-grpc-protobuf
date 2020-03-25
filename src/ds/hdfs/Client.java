@@ -112,7 +112,7 @@ public class Client {
         }
     }
 
-    private void shutDownAllDataNodes() throws InterruptedException {
+    private void closeDNConnections() throws InterruptedException {
         for (HashMap.Entry<DataNodeInfo, DataNodeConnection> openDataNode : openDataNodes.entrySet()) {
             openDataNode.getValue().shutdown();
         }
@@ -120,7 +120,6 @@ public class Client {
 
     private void get(String fileName) throws IOException {
 
-        // TODO: remove debug data
         FileMetadata request = FileMetadata.newBuilder()
                 .setName(fileName)
                 .build();
@@ -133,7 +132,7 @@ public class Client {
 //        if (!successfullySentBlocks.contains(blockLocation.getBlockInfo())) {
 
         try {
-            BlockLocationMapping response = nameNodeBlockingStub.getBlockLocations(request);
+            BlockLocationMapping responseWithBlockLocationMapping = nameNodeBlockingStub.getBlockLocations(request);
 
 //            for (BlockLocation blockLocation : response.getMappingList()) {
 //                DataNodeConnection currentDataNodeConnection;
@@ -191,32 +190,32 @@ public class Client {
 
                 } catch (StatusRuntimeException e) {
                     if (e.getStatus().getCode() == io.grpc.Status.Code.DEADLINE_EXCEEDED) {
-                        logger.log(Level.SEVERE, "Could not contact DataNode "
+                        logger.log(Level.WARNING, "Could not contact DataNode "
                                 + blockLocation.getDataNodeInfo() + ", continuing to try others", e);
                     }
                 }
             }
 
             if (Collections.max(bytesWrittenSuccessfully.values()) < fileMetadata.getSize()) {
-                throw new RuntimeException("Error: unable completely send file to any Data Node");
+                throw new RuntimeException("Not all blocks were successfully written.");
             }
 
         } catch (RuntimeException e) {
-            logger.log(Level.SEVERE, "Was not able to successfully put file because: " + e.getMessage(), e);
+            logger.log(Level.SEVERE, "Was unable to successfully put file because: " + e.getMessage(), e);
         }
 
         clientFile.close();
     }
 
     public void list() {
-        // TODO: remove debug data
         ListFilesParam request = ListFilesParam.getDefaultInstance();
 
         try {
             FileList response = nameNodeBlockingStub.listFiles(request);
+            // TODO: print files nicely
             System.out.println("got files: " + response.getFilesList());
         } catch (StatusRuntimeException e) {
-            logger.log(Level.SEVERE, "err");
+            logger.log(Level.SEVERE, "unable to get a list of files: " + e.getMessage(), e);
         }
     }
 
@@ -304,7 +303,7 @@ public class Client {
             // resources the channel should be shut down when it will no longer be used. If it may be used
             // again leave it running.
 
-            client.shutDownAllDataNodes();
+            client.closeDNConnections();
             channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
 
         }
