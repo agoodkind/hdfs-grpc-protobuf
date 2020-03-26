@@ -66,6 +66,10 @@ public class Client {
 
         }
 
+        public long length() throws IOException {
+            return this.randomAccessFile.length();
+        }
+
         public void close() throws IOException {
             randomAccessFile.close();
         }
@@ -155,8 +159,9 @@ public class Client {
 
     private void put(String localFile, String remoteFile) throws IOException {
         ClientFile clientFile = new ClientFile(localFile);
+
         FileMetadata fileMetadata = FileMetadata.newBuilder()
-                .setSize(clientFile.randomAccessFile.length())
+                .setSize(clientFile.length())
                 .setName(remoteFile)
                 .build();
         HashMap<DataNodeInfo, Long> bytesWrittenSuccessfully = new HashMap<>();
@@ -164,41 +169,46 @@ public class Client {
         try {
             BlockLocationMapping responseWithBlockLocationMapping = nameNodeBlockingStub.assignBlocks(fileMetadata);
 
-            for (BlockLocation blockLocation : responseWithBlockLocationMapping.getMappingList()) {
+            // we only need to do anything if there was actually stuff in the file
+            // else we just return
+            if (responseWithBlockLocationMapping.getMappingList().size() > 0) {
 
-                DataNodeConnection currentDataNodeConnection;
-                // we only need to open a connection to a data node once, this saves resources
-                if (openDataNodes.containsKey(blockLocation.getDataNodeInfo())) {
-                    currentDataNodeConnection = openDataNodes.get(blockLocation.getDataNodeInfo());
-                } else {
-                    // datanodeconnection class adds to the list of open datanodes already
-                    currentDataNodeConnection = new DataNodeConnection(blockLocation.getDataNodeInfo());
-                }
+                for (BlockLocation blockLocation : responseWithBlockLocationMapping.getMappingList()) {
 
-                bytesWrittenSuccessfully.put(blockLocation.getDataNodeInfo(),
-                        bytesWrittenSuccessfully.getOrDefault(
-                                blockLocation.getDataNodeInfo(), 0L)
-                                + blockLocation.getBlockInfo().getBlockSize());
-
-                Block blockToWrite = clientFile.readBlock(blockLocation.getBlockInfo());
-
-                try {
-                    Status responseWithSuccess = currentDataNodeConnection.writeBlock(blockToWrite);
-                    if (!responseWithSuccess.getSuccess()) {
-                        throw new RuntimeException("Error writing block to DataNode"
-                                + currentDataNodeConnection.getDataNodeInfo());
+                    DataNodeConnection currentDataNodeConnection;
+                    // we only need to open a connection to a data node once, this saves resources
+                    if (openDataNodes.containsKey(blockLocation.getDataNodeInfo())) {
+                        currentDataNodeConnection = openDataNodes.get(blockLocation.getDataNodeInfo());
+                    } else {
+                        // datanodeconnection class adds to the list of open datanodes already
+                        currentDataNodeConnection = new DataNodeConnection(blockLocation.getDataNodeInfo());
                     }
 
-                } catch (StatusRuntimeException e) {
-                    if (e.getStatus().getCode() == io.grpc.Status.Code.DEADLINE_EXCEEDED) {
-                        logger.log(Level.WARNING, "Could not contact DataNode "
-                                + blockLocation.getDataNodeInfo() + ", continuing to try others", e);
+                    bytesWrittenSuccessfully.put(blockLocation.getDataNodeInfo(),
+                            bytesWrittenSuccessfully.getOrDefault(
+                                    blockLocation.getDataNodeInfo(), 0L)
+                                    + blockLocation.getBlockInfo().getBlockSize());
+
+                    Block blockToWrite = clientFile.readBlock(blockLocation.getBlockInfo());
+
+                    try {
+                        Status responseWithSuccess = currentDataNodeConnection.writeBlock(blockToWrite);
+                        if (!responseWithSuccess.getSuccess()) {
+                            throw new RuntimeException("Error writing block to DataNode"
+                                    + currentDataNodeConnection.getDataNodeInfo());
+                        }
+
+                    } catch (StatusRuntimeException e) {
+                        if (e.getStatus().getCode() == io.grpc.Status.Code.DEADLINE_EXCEEDED) {
+                            logger.log(Level.WARNING, "Could not contact DataNode "
+                                    + blockLocation.getDataNodeInfo() + ", continuing to try others", e);
+                        }
                     }
                 }
-            }
 
-            if (Collections.max(bytesWrittenSuccessfully.values()) < fileMetadata.getSize()) {
-                throw new RuntimeException("Not all blocks were successfully written.");
+                if (Collections.max(bytesWrittenSuccessfully.values()) < fileMetadata.getSize()) {
+                    throw new RuntimeException("Not all blocks were successfully written.");
+                }
             }
 
         } catch (RuntimeException e) {
@@ -287,6 +297,8 @@ public class Client {
 
                 } else if (args[0].equals("put")) {
                     client.put(args[1], args[2]);
+                } else if (args[0].equals("list")) {
+                    client.list();
                 }
 
             } finally {
