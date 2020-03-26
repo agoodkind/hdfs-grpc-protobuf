@@ -141,15 +141,6 @@ public class DataNode extends DataNodeGrpc.DataNodeImplBase {
 
             dataNodeServer.startServer(PORT, channel);
             dataNodeServer.blockUntilShutdown();
-
-            Runnable heartBeatRunnable = new Runnable() {
-                public void run() {
-                    dataNodeServer.beat();
-                }
-            };
-
-            ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-            executor.scheduleAtFixedRate(heartBeatRunnable, 0, 3, TimeUnit.SECONDS);
         }
     }
 }
