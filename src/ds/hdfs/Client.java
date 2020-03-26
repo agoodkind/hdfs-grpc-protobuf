@@ -291,14 +291,16 @@ public class Client {
             Client client = new Client(channel, config.BLOCK_SIZE_BYTES);
 
             try {
-                if (args[0].equals("get")) {
-
-                    client.get(args[1], args[2]);
-
-                } else if (args[0].equals("put")) {
-                    client.put(args[1], args[2]);
-                } else if (args[0].equals("list")) {
-                    client.list();
+                switch (args[0]) {
+                    case "get":
+                        client.get(args[1], args[2]);
+                        break;
+                    case "put":
+                        client.put(args[1], args[2]);
+                        break;
+                    case "list":
+                        client.list();
+                        break;
                 }
 
             } finally {
