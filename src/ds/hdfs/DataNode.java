@@ -6,11 +6,15 @@ import java.io.FileOutputStream;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.*;
 
 import io.grpc.BindableService;
 import io.grpc.Server;
@@ -53,7 +57,7 @@ public class DataNode extends DataNodeGrpc.DataNodeImplBase {
         try {
             blockStore.persistBlock(request);
             responseObserver.onNext(Status.newBuilder().setSuccess(true).build());
-        } catch (Exception e) {
+        } catch (IOException e) {
             System.out.println(e);
             responseObserver.onNext(Status.newBuilder().setSuccess(false).build());
         }
@@ -99,11 +103,12 @@ public class DataNode extends DataNodeGrpc.DataNodeImplBase {
         }
     }
 
-    private void sendHeartBeat() {
+    private void beat() {
         try {
             String ip = InetAddress.getLocalHost().getHostAddress().toString();
             DataNodeInfo info = DataNodeInfo.newBuilder().setIp(ip).setPort(PORT).build();
             BlockReport report = BlockReport.newBuilder().addAllBlocks(blockStore.getMetaDataList()).setDataNodeInfo(info).build();
+            System.out.println("sending heart beat...");
             nameNodeBlockingStub.heartBeat(report);
         } catch (UnknownHostException e) {
             // TODO handle error
@@ -136,6 +141,15 @@ public class DataNode extends DataNodeGrpc.DataNodeImplBase {
 
             dataNodeServer.startServer(PORT, channel);
             dataNodeServer.blockUntilShutdown();
+
+            Runnable heartBeatRunnable = new Runnable() {
+                public void run() {
+                    dataNodeServer.beat();
+                }
+            };
+
+            ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+            executor.scheduleAtFixedRate(heartBeatRunnable, 0, 3, TimeUnit.SECONDS);
         }
     }
 }
