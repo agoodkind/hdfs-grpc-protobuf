@@ -39,7 +39,7 @@ public class DataNode extends DataNodeGrpc.DataNodeImplBase {
 
     public DataNode(Channel channel) {
         nameNodeBlockingStub = NameNodeGrpc.newBlockingStub(channel);
-        blockStore = new BlockStore("persist/block_store/");
+        blockStore = new BlockStore(config.DATA_NODE_BLOCK_STORE_PATH);
     }
 
     @java.lang.Override
