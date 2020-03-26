@@ -7,6 +7,8 @@ import java.io.FileOutputStream;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import io.grpc.BindableService;
 import io.grpc.Server;
@@ -18,8 +20,8 @@ import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
 
 public class DataNode extends DataNodeGrpc.DataNodeImplBase {
-    Config config;
-    BlockStore blockStore;
+    private static Config config;
+    private static BlockStore blockStore;
 
     private final NameNodeGrpc.NameNodeBlockingStub nameNodeBlockingStub;
 
@@ -28,7 +30,7 @@ public class DataNode extends DataNodeGrpc.DataNodeImplBase {
 
     public DataNode(Channel channel) {
         nameNodeBlockingStub = NameNodeGrpc.newBlockingStub(channel);
-        blockStore = new BlockStore("persist/block_store");
+        blockStore = new BlockStore("persist/block_store/");
     }
 
     @java.lang.Override
@@ -53,14 +55,14 @@ public class DataNode extends DataNodeGrpc.DataNodeImplBase {
         responseObserver.onCompleted();
     }
 
-    private void startServer(int port) throws IOException {
+    private void startServer(int port, Channel channel) throws IOException {
 
         if (server != null) {
             throw new IllegalStateException("Already started");
         }
 
         server = ServerBuilder.forPort(port)
-                .addService(new DataNode())
+                .addService(new DataNode(channel))
                 .build()
                 .start();
 
@@ -117,7 +119,7 @@ public class DataNode extends DataNodeGrpc.DataNodeImplBase {
         int port = 9000;
         DataNode dataNodeServer = new DataNode(channel);
 
-        dataNodeServer.startServer(port);
+        dataNodeServer.startServer(port, channel);
         dataNodeServer.blockUntilShutdown();
     }
 }
