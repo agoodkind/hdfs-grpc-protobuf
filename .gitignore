@@ -71,3 +71,5 @@ fabric.propertiq    `es
 
 bin/*
 /src/tests/
+test.txt
+persist
