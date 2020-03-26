@@ -20,6 +20,8 @@ public class Config {
     public int HEARTBEAT_INTERVAL_MS = 10000;
     @SerializedName("name_node_metadata_persist_file")
     public String NAME_NODE_METADATA_PERSIST_FILE = "persist/persisted_metadata.bin";
+    @SerializedName("data_node_block_store_path")
+    public String DATA_NODE_BLOCK_STORE_PATH = "persist/block_store/";
 
     public static Config readConfig(String fileName) throws FileNotFoundException {
         return new Gson().fromJson(new BufferedReader(new FileReader(fileName)), Config.class);
