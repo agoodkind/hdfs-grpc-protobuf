@@ -34,6 +34,7 @@ public class BlockStore {
     public Block getBlock(BlockMetadata blockMetadata) throws NoSuchElementException {
         Block block = blockMap.get(blockMetadata);
 
+        // TODO: Is this good error handling?
         if(block == null) {
             throw new NoSuchElementException("unable to find block: " + blockMetadata.getFileName() + "_" + blockMetadata.getIndex());
         }
@@ -54,14 +55,18 @@ public class BlockStore {
                     FileInputStream inputStream = new FileInputStream(file);
                     Block block = Block.parseDelimitedFrom(inputStream);
                     blockMap.put(block.getBlockInfo(), block);
-                } catch (Exception e) {
+                } catch (FileNotFoundException e) {
+                    // TODO Better error handling
+                    System.out.println(e);
+                } catch (IOException e) {
                     // TODO Better error handling
                     System.out.println(e);
                 }
             }
         } else {
             // TODO Better error handling
-            System.out.println("no files available");
+            System.out.println("Datanode: no files available in block store");
+            System.out.println("path: " + STORE_PATH);
         }
     }
 

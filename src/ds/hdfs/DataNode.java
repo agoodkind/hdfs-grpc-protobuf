@@ -4,6 +4,8 @@ import ds.hdfs.generated.*;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import java.io.IOException;
@@ -20,8 +22,11 @@ import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
 
 public class DataNode extends DataNodeGrpc.DataNodeImplBase {
+
     private static Config config;
-    private static BlockStore blockStore;
+    private static int PORT = 9000;
+
+    private BlockStore blockStore;
 
     private final NameNodeGrpc.NameNodeBlockingStub nameNodeBlockingStub;
 
@@ -62,7 +67,7 @@ public class DataNode extends DataNodeGrpc.DataNodeImplBase {
         }
 
         server = ServerBuilder.forPort(port)
-                .addService(new DataNode(channel))
+                .addService(this)
                 .build()
                 .start();
 
@@ -95,31 +100,42 @@ public class DataNode extends DataNodeGrpc.DataNodeImplBase {
     }
 
     private void sendHeartBeat() {
-        BlockReport report = BlockReport.newBuilder().addAllBlocks(blockStore.getMetaDataList()).build();
-
-        nameNodeBlockingStub.heartBeat(report);
+        try {
+            String ip = InetAddress.getLocalHost().getHostAddress().toString();
+            DataNodeInfo info = DataNodeInfo.newBuilder().setIp(ip).setPort(PORT).build();
+            BlockReport report = BlockReport.newBuilder().addAllBlocks(blockStore.getMetaDataList()).setDataNodeInfo(info).build();
+            nameNodeBlockingStub.heartBeat(report);
+        } catch (UnknownHostException e) {
+            // TODO handle error
+            System.out.println(e);
+        }
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        if(args.length == 1) {
-            config = Config.readConfig(args[0]);
+        if (args.length < 1 || args.length > 2) {
+            System.err.println("Usage: ./run.sh datanode <port> [configFile]");
+            System.exit(1);
         } else {
-            config = new Config();
+            if(args.length == 2) {
+                config = Config.readConfig(args[1]);
+            } else {
+                config = new Config();
+            }
+            PORT = Integer.parseInt(args[0]);
+
+            // Create a communication channel to the server, known as a Channel. Channels are thread-safe
+            // and reusable. It is common to create channels at the beginning of your application and reuse
+            // them until the application shuts down.
+            ManagedChannel channel = ManagedChannelBuilder.forAddress(config.NAME_NODE_IP, config.NAME_NODE_PORT)
+                    // Channels are secure by default (via SSL/TLS). For the example we disable TLS to avoid
+                    // needing certificates.
+                    .usePlaintext()
+                    .build();
+
+            DataNode dataNodeServer = new DataNode(channel);
+
+            dataNodeServer.startServer(PORT, channel);
+            dataNodeServer.blockUntilShutdown();
         }
-
-        // Create a communication channel to the server, known as a Channel. Channels are thread-safe
-        // and reusable. It is common to create channels at the beginning of your application and reuse
-        // them until the application shuts down.
-        ManagedChannel channel = ManagedChannelBuilder.forAddress(config.NAME_NODE_IP, config.NAME_NODE_PORT)
-                // Channels are secure by default (via SSL/TLS). For the example we disable TLS to avoid
-                // needing certificates.
-                .usePlaintext()
-                .build();
-
-        int port = 9000;
-        DataNode dataNodeServer = new DataNode(channel);
-
-        dataNodeServer.startServer(port, channel);
-        dataNodeServer.blockUntilShutdown();
     }
 }
