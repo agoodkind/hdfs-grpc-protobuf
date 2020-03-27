@@ -23,5 +23,5 @@ proto: clean
 default_config:
 	java -cp $(classpath) ds.hdfs.Config
 clean:
-	rm -rf $(curdir)/bin/* $(curdir)/persist/* $(curdir)/src/ds/hdfs/generated/*
+	rm -rf $(curdir)/bin/* $(curdir)/persist $(curdir)/src/ds/hdfs/generated/*
 test:
