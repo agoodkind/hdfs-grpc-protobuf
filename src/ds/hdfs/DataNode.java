@@ -93,8 +93,8 @@ public class DataNode extends DataNodeGrpc.DataNodeImplBase {
             String ip = InetAddress.getLocalHost().getHostAddress().toString();
             DataNodeInfo info = DataNodeInfo.newBuilder().setIp(ip).setPort(PORT).build();
             BlockReport report = BlockReport.newBuilder().addAllBlocks(blockStore.getMetaDataList()).setDataNodeInfo(info).build();
-            System.out.println("sending heart beat...");
             nameNodeBlockingStub.heartBeat(report);
+            System.out.println("sent heart beat");
         } catch (UnknownHostException e) {
             // TODO handle error
             System.out.println(e);
@@ -123,6 +123,28 @@ public class DataNode extends DataNodeGrpc.DataNodeImplBase {
                     .build();
 
             DataNode dataNodeServer = new DataNode(channel);
+
+            Thread heartBeatThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+
+                    class SendHeartBeat extends TimerTask {
+                        public void run() {
+                            try {
+                                dataNodeServer.beat();
+                            } catch (Exception e) {
+                                System.out.println("Cannot connect to NameNode");
+                                System.out.println("unable to send beat");
+                            }
+                        }
+                    }
+
+                    Timer timer = new Timer();
+                    timer.schedule(new SendHeartBeat(), 0, 5000);
+                }
+            });
+
+            heartBeatThread.start();
 
             System.out.println("debug: ip: " + InetAddress.getLocalHost().getHostAddress().toString());
 
