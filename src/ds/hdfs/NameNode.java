@@ -5,8 +5,10 @@ import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -34,7 +36,6 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
         config.REPLICATION_FACTOR = replicationFactor;
         config.HEARTBEAT_INTERVAL_MS = heartbeatInvtervalMS;
         config.NAME_NODE_METADATA_PERSIST_FILE = persistFile;
-
     }
 
     public NameNode(Config config) {
@@ -96,6 +97,9 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
         // store 3: [3, 4] -> 3 \<= 2,  4 \<= 2  -> [0, 1] {3 - 3, 4 - 3}
         // store 4: [4, 5] -> 4 \<= 2,  5 \<= 2  -> [1, 2] {4 - 3, 5 - 3}
         // store 5: [5, 6] -> 5 \<= 2,  6 \<= 2  -> [2, 1] {5 - 3, 6 - 3
+
+        long bytesRemaining = fileMetadata.getSize();
+
         int j = 0;
         for (int i = 0; i < numOfBlocks; i++) {
             int k = 0;
@@ -105,6 +109,14 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
                     j -= numOfDNs;
                 }
 
+                int thisBlocksSize = config.BLOCK_SIZE_BYTES;
+
+                if (bytesRemaining < config.BLOCK_SIZE_BYTES) {
+                    thisBlocksSize = (int) bytesRemaining;
+                } else {
+                    bytesRemaining -= config.BLOCK_SIZE_BYTES;
+                }
+
                 // create the individual 1:1 block mappings
                 // store them in a temporary array
                 blockLocations.add(BlockLocation
@@ -112,7 +124,7 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
                         .setDataNodeInfo(currentDataNodes.get(j))
                         .setBlockInfo(BlockMetadata
                                 .newBuilder()
-                                .setBlockSize(config.BLOCK_SIZE_BYTES)
+                                .setBlockSize(thisBlocksSize)
                                 .setIndex(i)
                                 .setFileName(fileMetadata.getName())
                                 .build())
@@ -155,6 +167,8 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
     private void persistFileInfo() {
 
         try {
+            new File(new File(config.NAME_NODE_METADATA_PERSIST_FILE).getParent()).mkdirs();
+
             FileOutputStream outputStream = new FileOutputStream(config.NAME_NODE_METADATA_PERSIST_FILE);
             FileList.newBuilder()
                     .addAllFiles(getCurrentFiles())
@@ -364,7 +378,7 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
         }
 
         server = ServerBuilder.forPort(config.NAME_NODE_PORT)
-                .addService(new NameNode(config))
+                .addService(this)
                 .build()
                 .start();
 
