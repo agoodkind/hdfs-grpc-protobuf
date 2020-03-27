@@ -1,29 +1,14 @@
 package ds.hdfs;
 
+import ds.hdfs.generated.Status;
 import ds.hdfs.generated.*;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import io.grpc.*;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.*;
-
-import io.grpc.BindableService;
-import io.grpc.Server;
-import io.grpc.ServerBuilder;
-import io.grpc.stub.StreamObserver;
-import io.grpc.Channel;
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
-import io.grpc.StatusRuntimeException;
 
 public class DataNode extends DataNodeGrpc.DataNodeImplBase {
 
@@ -138,6 +123,8 @@ public class DataNode extends DataNodeGrpc.DataNodeImplBase {
                     .build();
 
             DataNode dataNodeServer = new DataNode(channel);
+
+            System.out.println("debug: ip: " + InetAddress.getLocalHost().getHostAddress().toString());
 
             dataNodeServer.startServer(PORT, channel);
             dataNodeServer.blockUntilShutdown();
