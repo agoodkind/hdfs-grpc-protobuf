@@ -292,7 +292,7 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
         List<BlockMetadata> blockReportList = requestWithBlockReportFromDN.getBlocksList();
         Set<BlockMetadata> knownBlocksForDN = getBlocksForDN(requestWithBlockReportFromDN.getDataNodeInfo());
 
-        System.out.println("got a heartbeat from: "
+        logger.log(Level.INFO, "got a heartbeat from: "
                 + requestWithBlockReportFromDN.getDataNodeInfo().getIp()
                 + ":"
                 + requestWithBlockReportFromDN.getDataNodeInfo().getPort());
