@@ -7,10 +7,12 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -128,8 +130,8 @@ public class Client {
         try {
             BlockLocationMapping responseWithBlockLocationMapping = nameNodeBlockingStub
                     .getBlockLocations(FileMetadata.newBuilder()
-                        .setName(remoteFile)
-                        .build());
+                            .setName(remoteFile)
+                            .build());
 
             if (responseWithBlockLocationMapping.getFileInfo().getSize() > 0) {
 
