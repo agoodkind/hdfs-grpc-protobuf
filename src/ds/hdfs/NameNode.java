@@ -228,19 +228,19 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
         return out;
     }
 
-    /**
-     * @param blockInfo
-     * @return a set of DNs that we currently know contain the given block
-     */
-    private Set<DataNodeInfo> getDNsForBlock(BlockMetadata blockInfo) {
-        Set<DataNodeInfo> out = Collections.synchronizedSet(new HashSet<>());
-        for (BlockLocation blockLocation : blockMappings.get(blockInfo.getFileName()).getMappingList()) {
-            if (blockLocation.getBlockInfo().equals(blockInfo)) {
-                out.add(blockLocation.getDataNodeInfo());
-            }
-        }
-        return out;
-    }
+//    /**
+//     * @param blockInfo
+//     * @return a set of DNs that we currently know contain the given block
+//     */
+//    private Set<DataNodeInfo> getDNsForBlock(BlockMetadata blockInfo) {
+//        Set<DataNodeInfo> out = Collections.synchronizedSet(new HashSet<>());
+//        for (BlockLocation blockLocation : blockMappings.get(blockInfo.getFileName()).getMappingList()) {
+//            if (blockLocation.getBlockInfo().equals(blockInfo)) {
+//                out.add(blockLocation.getDataNodeInfo());
+//            }
+//        }
+//        return out;
+//    }
 
     /**
      * remove all data nodes that haven't responded within HEARTBEAT_INTERVAL_MS
@@ -291,6 +291,11 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
 
         List<BlockMetadata> blockReportList = requestWithBlockReportFromDN.getBlocksList();
         Set<BlockMetadata> knownBlocksForDN = getBlocksForDN(requestWithBlockReportFromDN.getDataNodeInfo());
+
+        System.out.println("got a heartbeat from: "
+                + requestWithBlockReportFromDN.getDataNodeInfo().getIp()
+                + ":"
+                + requestWithBlockReportFromDN.getDataNodeInfo().getPort());
 
         for (BlockMetadata blockReport : blockReportList) {
             if (!knownBlocksForDN.contains(blockReport)) {
