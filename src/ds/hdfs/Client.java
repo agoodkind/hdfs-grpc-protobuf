@@ -246,6 +246,10 @@ public class Client {
         clientFile.close();
     }
 
+    /**
+     * sends a request to the DN asking for current list of files it is tracking
+     *
+     */
     public void list() {
         ListFilesParam request = ListFilesParam.getDefaultInstance();
 

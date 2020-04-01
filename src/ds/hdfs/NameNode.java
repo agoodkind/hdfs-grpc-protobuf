@@ -7,6 +7,7 @@ import io.grpc.stub.StreamObserver;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
@@ -76,6 +77,9 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
     }
 
     /**
+     * takes in a file's metadata then uses a modified version of the apache cassandra token ring
+     * hashing algorithm to assign each block to a config.REPLICATION_FACTOR # of nodes
+     * then returns them in a blockLocationMapping messsage
      * @param fileMetadata
      * @return blockLocationMapping
      */
@@ -109,6 +113,7 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
                     j -= numOfDNs;
                 }
 
+                // correctly set the last block size
                 int thisBlocksSize = config.BLOCK_SIZE_BYTES;
 
                 if (bytesRemaining < config.BLOCK_SIZE_BYTES) {
@@ -145,6 +150,10 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
                 .build();
     }
 
+    /**
+     * remove a given data node
+     * @param dataNodeInfo
+     */
     private void removeDataNode(DataNodeInfo dataNodeInfo) {
         dataNodeTimestamps.remove(dataNodeInfo);
     }
@@ -162,10 +171,11 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
     // no delete or edit operation required yet
 
     /**
-     * TODO: write out all the files and their info to a persisted place, this method should be called in some interval
+     * write out a file containing all the blocks that the NN is tracking
+     * file: the output is a protobuf compiled bin
      */
-    private void persistFileInfo() {
 
+    private void persistFileInfo() {
         try {
             new File(new File(config.NAME_NODE_METADATA_PERSIST_FILE).getParent()).mkdirs();
 

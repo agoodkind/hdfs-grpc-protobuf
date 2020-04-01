@@ -4,6 +4,7 @@
   "name_node_port": 50051,
   "replication_factor": 2,
   "heartbeat_interval_ms": 10000,
-  "name_node_metadata_persist_file": "persist/persisted_metadata.bin",
-  "data_node_block_store_path": "persist/block_store/"
+  "name_node_metadata_persist_file": "persist/name_node_metadata.protobin",
+  "data_node_block_store_path": "persist/block_store/",
+  "client_dn_deadline_ms": 2000
 }

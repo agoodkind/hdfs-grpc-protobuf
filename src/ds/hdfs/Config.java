@@ -19,7 +19,7 @@ public class Config {
     @SerializedName("heartbeat_interval_ms")
     public int HEARTBEAT_INTERVAL_MS = 10000;
     @SerializedName("name_node_metadata_persist_file")
-    public String NAME_NODE_METADATA_PERSIST_FILE = "persist/name_node_metadata.json";
+    public String NAME_NODE_METADATA_PERSIST_FILE = "persist/name_node_metadata.protobin";
     @SerializedName("data_node_block_store_path")
     public String DATA_NODE_BLOCK_STORE_PATH = "persist/block_store/";
     @SerializedName("client_dn_deadline_ms")

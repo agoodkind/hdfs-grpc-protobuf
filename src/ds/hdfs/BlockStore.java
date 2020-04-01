@@ -34,7 +34,8 @@ public class BlockStore {
     public Block getBlock(BlockMetadata blockMetadata) throws NoSuchElementException {
         Block block = blockMap.get(blockMetadata);
 
-        // TODO: Is this good error handling?
+        // TODO: wrap this in a try .. catch block
+        //  and when the error is thrown catch it and log an error so the program doesnt exit
         if(block == null) {
             throw new NoSuchElementException("unable to find block: " + blockMetadata.getFileName() + "_" + blockMetadata.getIndex());
         }
@@ -48,6 +49,10 @@ public class BlockStore {
 
     private void updateBlockMap() {
         File dir = new File(STORE_PATH);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+
         File[] storeDirectory = dir.listFiles();
         if (storeDirectory != null) {
             for (File file : storeDirectory) {
@@ -55,11 +60,8 @@ public class BlockStore {
                     FileInputStream inputStream = new FileInputStream(file);
                     Block block = Block.parseDelimitedFrom(inputStream);
                     blockMap.put(block.getBlockInfo(), block);
-                } catch (FileNotFoundException e) {
-                    // TODO Better error handling
-                    System.out.println(e);
                 } catch (IOException e) {
-                    // TODO Better error handling
+                    // TODO more detailed error handling
                     System.out.println(e);
                 }
             }
