@@ -46,6 +46,18 @@ $> ./run.sh datanode <port> [config]
 $> ./run.sh client <command <filename> <filename>> [config]
 ```
 
+every command is seperate for client, eg.
+ 
+ ```
+$> ./run.sh client put test1.txt test.txt
+...
+$> ./run.sh client get test.txt test2.txt
+...
+$> ./run.sh client list
+    1 file(s):
+        test.txt
+ ```
+ 
 all commands support `help`, eg `$> ./run.sh namenode help`
 
 ## misc
