@@ -22,7 +22,7 @@ mapreduce:
 proto:
 	chmod +x $(protoc_plugin_path)/$(protoc_grpc_plugin_exe)
 	chmod +x $(protoc_plugin_path)/$(protoc_exe)
-	protoc --plugin=protoc-gen-grpc-java=$(protoc_plugin_path)/$(protoc_grpc_plugin_exe) --grpc-java_out=src --proto_path=$(proto_sources) --java_out=src $(proto_sources)/hdfsformat.proto
+	$(protoc_plugin_path)/$(protoc_exe) --plugin=protoc-gen-grpc-java=$(protoc_plugin_path)/$(protoc_grpc_plugin_exe) --grpc-java_out=src --proto_path=$(proto_sources) --java_out=src $(proto_sources)/hdfsformat.proto
 default_config:
 	java -cp $(classpath) ds.hdfs.Config
 clean:
