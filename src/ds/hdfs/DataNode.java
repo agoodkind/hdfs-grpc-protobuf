@@ -10,12 +10,13 @@ import java.net.UnknownHostException;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class DataNode extends DataNodeGrpc.DataNodeImplBase {
 
-    private static Config config;
-    private static int PORT = 9000;
+    private Config config;
+    private int PORT = 9000;
 
     private BlockStore blockStore;
 
@@ -24,7 +25,9 @@ public class DataNode extends DataNodeGrpc.DataNodeImplBase {
     private static final Logger logger = Logger.getLogger(DataNode.class.getName());
     private Server server;
 
-    public DataNode(Channel channel) {
+    public DataNode(Channel channel, int port, Config config) {
+        this.config  = config;
+        this.PORT = port;
         nameNodeBlockingStub = NameNodeGrpc.newBlockingStub(channel);
         blockStore = new BlockStore(config.DATA_NODE_BLOCK_STORE_PATH);
     }
@@ -51,18 +54,27 @@ public class DataNode extends DataNodeGrpc.DataNodeImplBase {
         responseObserver.onCompleted();
     }
 
-    private void startServer(int port, Channel channel) throws IOException {
+    private void startServer() throws IOException {
 
         if (server != null) {
             throw new IllegalStateException("Already started");
         }
 
-        server = ServerBuilder.forPort(port)
+        server = ServerBuilder.forPort(this.PORT)
                 .addService(this)
                 .build()
                 .start();
 
-        logger.info("Server started, listening on " + port);
+        // reset port just in case 0
+        if (this.PORT == 0) {
+            this.PORT = server.getPort();
+        }
+
+        logger.info("Server started, listening on "
+                + InetAddress.getLocalHost().getHostAddress()
+                + ":"
+                + this.PORT);
+
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
@@ -93,10 +105,15 @@ public class DataNode extends DataNodeGrpc.DataNodeImplBase {
     private void beat() {
         try {
             String ip = InetAddress.getLocalHost().getHostAddress().toString();
-            DataNodeInfo info = DataNodeInfo.newBuilder().setIp(ip).setPort(PORT).build();
-            BlockReport report = BlockReport.newBuilder().addAllBlocks(blockStore.getMetaDataList()).setDataNodeInfo(info).build();
+            DataNodeInfo info = DataNodeInfo.newBuilder()
+                    .setIp(ip)
+                    .setPort(this.server.getPort()).build();
+
+            BlockReport report = BlockReport.newBuilder()
+                    .addAllBlocks(blockStore.getMetaDataList())
+                    .setDataNodeInfo(info).build();
             nameNodeBlockingStub.heartBeat(report);
-            System.out.println("sent heart beat");
+            logger.info("sent heartbeat");
         } catch (UnknownHostException e) {
             // TODO handle error
             System.out.println(e);
@@ -104,54 +121,59 @@ public class DataNode extends DataNodeGrpc.DataNodeImplBase {
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        if (args.length < 1 || args.length > 2) {
-            System.err.println("Usage: ./run.sh datanode <port> [configFile]");
-            System.exit(1);
-        } else {
-            if(args.length == 2) {
+        int port = 0;
+        final Config config;
+
+        if (args.length > 0) {
+            if (args[0].equals("help")) {
+                System.err.println("Usage: <port> [configFile]");
+                System.err.println("");
+                System.err.println("\tport                    \tif left blank a random port is used.");
+                System.err.println("");
+                System.err.println("\thelp                    \tDisplay this message.");
+                System.exit(1);
+
+            } else {
+                port = Integer.parseInt(args[0]);
+            }
+
+            if (args.length == 2) {
                 config = Config.readConfig(args[1]);
             } else {
                 config = new Config();
             }
-            PORT = Integer.parseInt(args[0]);
-
-            // Create a communication channel to the server, known as a Channel. Channels are thread-safe
-            // and reusable. It is common to create channels at the beginning of your application and reuse
-            // them until the application shuts down.
-            ManagedChannel channel = ManagedChannelBuilder.forAddress(config.NAME_NODE_IP, config.NAME_NODE_PORT)
-                    // Channels are secure by default (via SSL/TLS). For the example we disable TLS to avoid
-                    // needing certificates.
-                    .usePlaintext()
-                    .build();
-
-            DataNode dataNodeServer = new DataNode(channel);
-
-            Thread heartBeatThread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-
-                    class SendHeartBeat extends TimerTask {
-                        public void run() {
-                            try {
-                                dataNodeServer.beat();
-                            } catch (Exception e) {
-                                System.out.println("Cannot connect to NameNode");
-                                System.out.println("unable to send beat");
-                            }
-                        }
-                    }
-
-                    Timer timer = new Timer();
-                    timer.schedule(new SendHeartBeat(), 0, 5000);
-                }
-            });
-
-            heartBeatThread.start();
-
-            System.out.println("debug: ip: " + InetAddress.getLocalHost().getHostAddress().toString());
-
-            dataNodeServer.startServer(PORT, channel);
-            dataNodeServer.blockUntilShutdown();
+        } else {
+            config = new Config();
         }
+
+        // Create a communication channel to the server, known as a Channel. Channels are thread-safe
+        // and reusable. It is common to create channels at the beginning of your application and reuse
+        // them until the application shuts down.
+        ManagedChannel channel = ManagedChannelBuilder.forAddress(config.NAME_NODE_IP, config.NAME_NODE_PORT)
+                // Channels are secure by default (via SSL/TLS). For the example we disable TLS to avoid
+                // needing certificates.
+                .usePlaintext()
+                .build();
+
+        DataNode dataNodeServer = new DataNode(channel, port, config);
+        dataNodeServer.startServer();
+
+        Thread heartBeatThread = new Thread(() -> {
+            class SendHeartBeat extends TimerTask {
+                public void run() {
+                    try {
+                        dataNodeServer.beat();
+                    } catch (Exception e) {
+                        logger.log(Level.SEVERE, "Cannot connect to NameNode, unable to send heartbeat");
+                    }
+                }
+            }
+
+            Timer timer = new Timer();
+            timer.schedule(new SendHeartBeat(), 0, config.HEARTBEAT_INTERVAL_MS);
+        });
+        heartBeatThread.start();
+
+        dataNodeServer.blockUntilShutdown();
     }
 }

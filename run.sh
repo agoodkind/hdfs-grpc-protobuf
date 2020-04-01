@@ -2,13 +2,14 @@
 curdir=$(pwd)
 classpath="$curdir/lib/*:$curdir/bin"
 javarun="java -cp $classpath ds.hdfs"
+args=${*:2}
 
 if [ $1 = 'client' ]; then
-  eval "$javarun.Client $2"
+  eval "$javarun.Client $args"
 elif [ $1 = 'datanode' ]; then
-  eval "$javarun.DataNode $2"
+  eval "$javarun.DataNode $args"
 elif [ $1 = 'namenode' ]; then
-  eval "$javarun.NameNode $2"
+  eval "$javarun.NameNode $args"
 else
-  echo "test"
+  echo "expected client, datanode, or namenode"
 fi

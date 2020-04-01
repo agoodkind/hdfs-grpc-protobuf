@@ -7,6 +7,7 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Collections;
@@ -33,6 +34,7 @@ public class Client {
         nameNodeBlockingStub = NameNodeGrpc.newBlockingStub(channel);
     }
 
+    // helper class for manipulating files
     class ClientFile {
 
         private RandomAccessFile randomAccessFile;
@@ -73,6 +75,7 @@ public class Client {
         }
     }
 
+    // helper class that makes connecting to DN's quick
     class DataNodeConnection {
 
         private DataNodeGrpc.DataNodeBlockingStub dataNodeBlockingStub;
@@ -115,15 +118,23 @@ public class Client {
         }
     }
 
+    // helper function to close a DN connection
     private void closeDNConnections() throws InterruptedException {
         for (HashMap.Entry<DataNodeInfo, DataNodeConnection> openDataNode : openDataNodes.entrySet()) {
             openDataNode.getValue().shutdown();
         }
     }
 
+    /**
+     * given a remoteFile
+     * request the NN to respond with all the locations of known blocks
+     * then retrieve each block from each DN
+     * write the assembled set of blocks to localFile
+     * @param remoteFile
+     * @param localFile
+     * @throws IOException
+     */
     private void get(String remoteFile, String localFile) throws IOException {
-        ClientFile clientFile = new ClientFile(localFile);
-
         HashMap<DataNodeInfo, Long> bytesRetrievedSuccessfully = new HashMap<>();
         HashSet<BlockMetadata> blocksSeen = new HashSet<>();
 
@@ -134,6 +145,8 @@ public class Client {
                             .build());
 
             if (responseWithBlockLocationMapping.getFileInfo().getSize() > 0) {
+
+                ClientFile clientFile = new ClientFile(localFile);
 
                 for (BlockLocation blockLocation : responseWithBlockLocationMapping.getMappingList()) {
                     DataNodeConnection currentDataNodeConnection;
@@ -176,89 +189,112 @@ public class Client {
                         responseWithBlockLocationMapping.getFileInfo().getSize()) {
                     throw new RuntimeException("Not all blocks were successfully retrieved.");
                 }
+
+                clientFile.close();
+            }
+            else {
+                logger.log(Level.WARNING, "Remote File: " + remoteFile + " was not found, nothing done.");
             }
 
         } catch (RuntimeException e) {
             logger.log(Level.SEVERE, "Was unable to successfully get file. ", e);
         }
 
-        clientFile.close();
+
     }
 
+    /**
+     * given a localFile:
+     * - send the file metadata to the NN but use the name of remoteFile
+     * with the NN response:
+     * - send the assignment blocks to each specified DN
+     * @param localFile
+     * @param remoteFile
+     * @throws IOException
+     */
     private void put(String localFile, String remoteFile) throws IOException {
-        ClientFile clientFile = new ClientFile(localFile);
 
-        FileMetadata fileMetadata = FileMetadata.newBuilder()
-                .setSize(clientFile.length())
-                .setName(remoteFile)
-                .build();
+        File checkFile = new File(localFile);
 
-        HashMap<DataNodeInfo, Long> bytesSentSuccessfully = new HashMap<>();
+        if (checkFile.exists() && checkFile.isFile()) {
+            ClientFile clientFile = new ClientFile(localFile);
 
-        try {
-            BlockLocationMapping responseWithBlockLocationMapping = nameNodeBlockingStub.assignBlocks(fileMetadata);
+            FileMetadata fileMetadata = FileMetadata.newBuilder()
+                    .setSize(clientFile.length())
+                    .setName(remoteFile)
+                    .build();
 
-            // we only need to do anything if there was actually stuff in the file
-            // else we just return
-            if (responseWithBlockLocationMapping.getMappingList().size() > 0) {
+            HashMap<DataNodeInfo, Long> bytesSentSuccessfully = new HashMap<>();
 
-                for (BlockLocation blockLocation : responseWithBlockLocationMapping.getMappingList()) {
+            try {
+                BlockLocationMapping responseWithBlockLocationMapping = nameNodeBlockingStub.assignBlocks(fileMetadata);
 
-                    DataNodeConnection currentDataNodeConnection;
-                    // we only need to open a connection to a data node once, this saves resources
-                    if (openDataNodes.containsKey(blockLocation.getDataNodeInfo())) {
-                        currentDataNodeConnection = openDataNodes.get(blockLocation.getDataNodeInfo());
-                    } else {
-                        // datanodeconnection class adds to the list of open datanodes already
-                        currentDataNodeConnection = new DataNodeConnection(blockLocation.getDataNodeInfo());
-                    }
+                // we only need to do anything if there was actually stuff in the file
+                // else we just return
+                if (responseWithBlockLocationMapping.getMappingList().size() > 0) {
 
-                    Block blockToWrite = clientFile.readBlock(blockLocation.getBlockInfo());
+                    for (BlockLocation blockLocation : responseWithBlockLocationMapping.getMappingList()) {
 
-                    try {
-                        Status responseWithSuccess = currentDataNodeConnection.writeBlock(blockToWrite);
-                        if (!responseWithSuccess.getSuccess()) {
-                            throw new RuntimeException("Error writing block to DataNode");
+                        DataNodeConnection currentDataNodeConnection;
+                        // we only need to open a connection to a data node once, this saves resources
+                        if (openDataNodes.containsKey(blockLocation.getDataNodeInfo())) {
+                            currentDataNodeConnection = openDataNodes.get(blockLocation.getDataNodeInfo());
                         } else {
-                            bytesSentSuccessfully.put(blockLocation.getDataNodeInfo(),
-                                    bytesSentSuccessfully.getOrDefault(
-                                            blockLocation.getDataNodeInfo(), 0L)
-                                            + blockLocation.getBlockInfo().getBlockSize());
+                            // datanodeconnection class adds to the list of open datanodes already
+                            currentDataNodeConnection = new DataNodeConnection(blockLocation.getDataNodeInfo());
                         }
-                    } catch (RuntimeException e) {
-                        logger.log(Level.WARNING, "Could not write block to DataNode "
-                                + blockLocation.getDataNodeInfo().getIp() + ":"
-                                + blockLocation.getDataNodeInfo().getPort()
-                                + " because: " + e.getMessage()
-                                + " continue to try other DNs...", e);
+
+                        Block blockToWrite = clientFile.readBlock(blockLocation.getBlockInfo());
+
+                        try {
+                            Status responseWithSuccess = currentDataNodeConnection.writeBlock(blockToWrite);
+                            if (!responseWithSuccess.getSuccess()) {
+                                throw new RuntimeException("Error writing block to DataNode");
+                            } else {
+                                bytesSentSuccessfully.put(blockLocation.getDataNodeInfo(),
+                                        bytesSentSuccessfully.getOrDefault(
+                                                blockLocation.getDataNodeInfo(), 0L)
+                                                + blockLocation.getBlockInfo().getBlockSize());
+                            }
+                        } catch (RuntimeException e) {
+                            logger.log(Level.WARNING, "Could not write block to DataNode "
+                                    + blockLocation.getDataNodeInfo().getIp() + ":"
+                                    + blockLocation.getDataNodeInfo().getPort()
+                                    + " because: " + e.getMessage()
+                                    + " continue to try other DNs...", e);
+                        }
+                    }
+
+                    if (Collections.max(bytesSentSuccessfully.values()) < fileMetadata.getSize()) {
+                        throw new RuntimeException("Not all blocks were successfully written.");
                     }
                 }
 
-                if (Collections.max(bytesSentSuccessfully.values()) < fileMetadata.getSize()) {
-                    throw new RuntimeException("Not all blocks were successfully written.");
-                }
+            } catch (RuntimeException e) {
+                logger.log(Level.SEVERE, "Was unable to successfully put file. ", e);
             }
 
-        } catch (RuntimeException e) {
-            logger.log(Level.SEVERE, "Was unable to successfully put file. ", e);
+            clientFile.close();
+        } else {
+            logger.log(Level.WARNING, "Local File: " + localFile + " does not exist, nothing done.");
         }
-
-        clientFile.close();
     }
 
     /**
      * sends a request to the DN asking for current list of files it is tracking
-     *
      */
     public void list() {
         ListFilesParam request = ListFilesParam.getDefaultInstance();
 
         try {
-            FileList response = nameNodeBlockingStub.listFiles(request);
-            // TODO: print files nicely
-            System.out.println("got files: " + response.getFilesList());
+            FileList responseWithFileList = nameNodeBlockingStub.listFiles(request);
+
+            System.out.println("\tGot " + responseWithFileList.getFilesCount() + " file(s):");
+            for (FileMetadata fileMetadata : responseWithFileList.getFilesList()) {
+                System.out.println("\t\t" + fileMetadata.getName());
+            }
         } catch (StatusRuntimeException e) {
-            logger.log(Level.SEVERE, "unable to get a list of files: " + e.getMessage(), e);
+            logger.log(Level.SEVERE, "unable to get a list of files.", e);
         }
     }
 
@@ -271,6 +307,8 @@ public class Client {
             System.err.println("\tget hdfs_file local_file\tWrites a file to the local filesystem from HDFS");
             System.err.println("\tput local_file hdfs_file\tWrites a new file to HDFS from local file system");
             System.err.println("\tlist                    \tDisplays all files present in HDFS");
+            System.err.println("");
+            System.err.println("\thelp                    \tDisplay this message.");
             System.exit(1);
         } else {
 

@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -258,7 +259,9 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
      */
     private void pruneDataNodes() {
         for (Map.Entry<DataNodeInfo, Long> dataNodeEntry : dataNodeTimestamps.entrySet()) {
-            if (System.currentTimeMillis() - dataNodeEntry.getValue() > config.HEARTBEAT_INTERVAL_MS) {
+            // add 1000 to heartbeat interval because of possible network delays
+            // this could be done better but eh
+            if (System.currentTimeMillis() - dataNodeEntry.getValue() > config.HEARTBEAT_INTERVAL_MS + 1000) {
                 removeDataNode(dataNodeEntry.getKey());
 
                 logger.log(Level.WARNING, "DataNode at "
@@ -397,7 +400,10 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
                 .build()
                 .start();
 
-        logger.info("Server started, listening on " + config.NAME_NODE_PORT);
+        logger.info("Server started, listening on "
+                + InetAddress.getLocalHost().getHostAddress()
+                + ":"
+                + server.getPort());
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
