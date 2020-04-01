@@ -126,24 +126,15 @@ public class DataNode extends DataNodeGrpc.DataNodeImplBase {
 
         if (args.length > 0) {
             if (args[0].equals("help")) {
-                System.err.println("Usage: <port> [configFile]");
-                System.err.println("");
-                System.err.println("\tport                    \tif left blank a random port is used.");
+                System.err.println("Usage: [configFile]");
                 System.err.println("");
                 System.err.println("\thelp                    \tDisplay this message.");
                 System.exit(1);
-
-            } else {
-                port = Integer.parseInt(args[0]);
             }
 
-            if (args.length == 2) {
-                config = Config.readConfig(args[1]);
-            } else {
-                config = new Config();
-            }
+            config = Config.readConfig(args[1]);
         } else {
-            config = new Config();
+            config = Config.readConfig("config/default_config.json");
         }
 
         // Create a communication channel to the server, known as a Channel. Channels are thread-safe

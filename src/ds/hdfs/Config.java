@@ -24,6 +24,8 @@ public class Config {
     public String DATA_NODE_BLOCK_STORE_PATH = "persist/block_store/";
     @SerializedName("client_dn_deadline_ms")
     public int CLIENT_DN_DEADLINE_MS = 2000;
+    @SerializedName("data_node_port")
+    public int DATA_NODE_PORT = 0;
 
     public static Config readConfig(String fileName) throws FileNotFoundException {
         return new Gson().fromJson(new BufferedReader(new FileReader(fileName)), Config.class);

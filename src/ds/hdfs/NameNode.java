@@ -436,7 +436,7 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
         if (args.length == 1) {
             nameNodeServer = new NameNode(Config.readConfig(args[0]));
         } else {
-            nameNodeServer = new NameNode();
+            nameNodeServer = new NameNode(Config.readConfig("config/default_config.json"));
         }
 
 

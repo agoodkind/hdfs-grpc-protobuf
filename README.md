@@ -26,20 +26,24 @@ the default config is self-explanatory and looks like this:
   "heartbeat_interval_ms": 10000,
   "name_node_metadata_persist_file": "persist/name_node_metadata.protobin",
   "data_node_block_store_path": "persist/block_store/",
-  "client_dn_deadline_ms": 2000
+  "client_dn_deadline_ms": 2000,
+  "data_node_port": 0
 }
 ```
+
+if you wish to have data node run on a specific port, change 0 to any valid value,
+0 will assign a port randomly
 
 ## running
 you can either run with the shell script, or using java directly
 
 ### NameNode
 ```shell script
-$> ./run.sh namenode <config>
+$> ./run.sh namenode [config]
 ```
 ### DataNode
 ```shell script
-$> ./run.sh datanode <port> [config]
+$> ./run.sh datanode [config]
 ```
 ### Client
 ```shell script

@@ -317,7 +317,7 @@ public class Client {
             } else if (args.length == 2 && args[0].equals("list")) {
                 config = Config.readConfig(args[1]);
             } else {
-                config = new Config();
+                config = Config.readConfig("config/default_config.json");
             }
 
             // Create a communication channel to the server, known as a Channel. Channels are thread-safe
