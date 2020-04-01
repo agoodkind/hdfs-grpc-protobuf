@@ -3,18 +3,18 @@ project for rutgers cs417 distributed systems
 
 a basic implementation of HDFS' put, get, and list implemented in gRPC
 
-*contributers:* sal fakhri (sf595), alex goodkind (amg540)
+**contributers:** sal fakhri (sf595), alex goodkind (amg540)
 
 
 ---
 ### building
 ```shell script
-make all
+$> make all
 ```
 ### configuration
 after building, the default configuration is generated under `config/default_config.json` 
 
-if you are _not_ running all services on same machine, make sure to change `name_node_ip`
+if you are **not** running all services on same machine, make sure to change `name_node_ip`
 
 the default config is self-explanatory and looks like this:
 ```json
@@ -49,7 +49,8 @@ $> ./run.sh client <command <filename> <filename>> [config]
 all commands support `help`, eg `$> ./run.sh namenode help`
 
 ## misc
-*all persisted files are written as a protobuf binary file*
+**all persisted files are written as a protobuf binary file**
+
 block files are written to `persist/block_store/*` eg. `persist/block_store/test_file.jpg_0`
 
 namenode metadata is written to `name_node_metadata.protobin` everytime a new file is `put` from the client
