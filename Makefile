@@ -17,6 +17,7 @@ endif
 
 all: proto hdfs mapreduce default_config
 hdfs:
+	mkdir -p $(curdir)/bin
 	javac -d $(out) -cp $(classpath) $(hdfs_java_sources)/generated/*.java $(hdfs_java_sources)/*.java
 mapreduce:
 proto: clean
