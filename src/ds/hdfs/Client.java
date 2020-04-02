@@ -135,7 +135,7 @@ public class Client {
      * @throws IOException
      */
     private void get(String remoteFile, String localFile) throws IOException {
-        HashMap<DataNodeInfo, Long> bytesRetrievedSuccessfully = new HashMap<>();
+        long bytesRetrievedSuccessfully = 0L;
         HashSet<BlockMetadata> blocksSeen = new HashSet<>();
 
         try {
@@ -166,12 +166,11 @@ public class Client {
                             if (retrievedBlock.isInitialized()) {
                                 clientFile.writeBlock(retrievedBlock);
 
-                                bytesRetrievedSuccessfully.put(blockLocation.getDataNodeInfo(),
-                                        bytesRetrievedSuccessfully.getOrDefault(
-                                                blockLocation.getDataNodeInfo(), 0L)
-                                                + blockLocation.getBlockInfo().getBlockSize());
+                                if (blocksSeen.contains(blockLocation.getBlockInfo())) {
+                                    bytesRetrievedSuccessfully +=blockLocation.getBlockInfo().getBlockSize();
+                                    blocksSeen.add(blockLocation.getBlockInfo());
+                                }
 
-                                blocksSeen.add(blockLocation.getBlockInfo());
                             } else {
                                 throw new RuntimeException("Error retrieving block from DataNode");
                             }
@@ -180,24 +179,26 @@ public class Client {
                                     + blockLocation.getDataNodeInfo().getIp() + ":"
                                     + blockLocation.getDataNodeInfo().getPort()
                                     + " because: " + e.getMessage()
-                                    + " continue to try other DNs...", e);
+                                    + " continue to try other DNs...");
                         }
                     }
                 }
 
-                if (Collections.max(bytesRetrievedSuccessfully.values()) <
+                clientFile.close();
+
+                if (bytesRetrievedSuccessfully <
                         responseWithBlockLocationMapping.getFileInfo().getSize()) {
                     throw new RuntimeException("Not all blocks were successfully retrieved.");
                 }
 
-                clientFile.close();
+
             }
             else {
                 logger.log(Level.WARNING, "Remote File: " + remoteFile + " was not found, nothing done.");
             }
 
         } catch (RuntimeException e) {
-            logger.log(Level.SEVERE, "Was unable to successfully get file. ", e);
+            logger.log(Level.SEVERE, "Was unable to successfully get file. ");
         }
 
 
@@ -224,7 +225,8 @@ public class Client {
                     .setName(remoteFile)
                     .build();
 
-            HashMap<DataNodeInfo, Long> bytesSentSuccessfully = new HashMap<>();
+            HashSet<BlockMetadata> blocksSentSuccessfully = new HashSet<>();
+            long bytesSentSuccessfully = 0L;
 
             try {
                 BlockLocationMapping responseWithBlockLocationMapping = nameNodeBlockingStub.assignBlocks(fileMetadata);
@@ -251,10 +253,10 @@ public class Client {
                             if (!responseWithSuccess.getSuccess()) {
                                 throw new RuntimeException("Error writing block to DataNode");
                             } else {
-                                bytesSentSuccessfully.put(blockLocation.getDataNodeInfo(),
-                                        bytesSentSuccessfully.getOrDefault(
-                                                blockLocation.getDataNodeInfo(), 0L)
-                                                + blockLocation.getBlockInfo().getBlockSize());
+                                if (!blocksSentSuccessfully.contains(blockLocation.getBlockInfo())) {
+                                    bytesSentSuccessfully += blockLocation.getBlockInfo().getBlockSize();
+                                    blocksSentSuccessfully.add(blockLocation.getBlockInfo());
+                                }
                             }
                         } catch (RuntimeException e) {
                             logger.log(Level.WARNING, "Could not write block to DataNode "
@@ -265,7 +267,7 @@ public class Client {
                         }
                     }
 
-                    if (Collections.max(bytesSentSuccessfully.values()) < fileMetadata.getSize()) {
+                    if (bytesSentSuccessfully < fileMetadata.getSize()) {
                         throw new RuntimeException("Not all blocks were successfully written.");
                     }
                 }

@@ -107,20 +107,22 @@ public class NameNode extends NameNodeGrpc.NameNodeImplBase {
 
         int j = 0;
         for (int i = 0; i < numOfBlocks; i++) {
+
             int k = 0;
+
+            // correctly set the last block size
+            int thisBlocksSize = config.BLOCK_SIZE_BYTES;
+
+            if (bytesRemaining < config.BLOCK_SIZE_BYTES) {
+                thisBlocksSize = (int) bytesRemaining;
+            } else {
+                bytesRemaining -= config.BLOCK_SIZE_BYTES;
+            }
+
             while (k < config.REPLICATION_FACTOR) {
 
                 if (j >= numOfDNs) {
                     j -= numOfDNs;
-                }
-
-                // correctly set the last block size
-                int thisBlocksSize = config.BLOCK_SIZE_BYTES;
-
-                if (bytesRemaining < config.BLOCK_SIZE_BYTES) {
-                    thisBlocksSize = (int) bytesRemaining;
-                } else {
-                    bytesRemaining -= config.BLOCK_SIZE_BYTES;
                 }
 
                 // create the individual 1:1 block mappings
