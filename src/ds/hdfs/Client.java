@@ -322,6 +322,7 @@ public class Client {
                     // Channels are secure by default (via SSL/TLS). For the example we disable TLS to avoid
                     // needing certificates.
                     .usePlaintext()
+                    .maxInboundMessageSize(67108864)
                     .build();
 
             Client client = new Client(config, channel);

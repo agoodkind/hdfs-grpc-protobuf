@@ -34,6 +34,8 @@ the default config is self-explanatory and looks like this:
 if you wish to have data node run on a specific port, change 0 to any valid value,
 0 will assign a port randomly
 
+**note**: if you are planning on running everything on the same system make sure that each datanode has its own config & persist directory
+
 ## running
 you can either run with the shell script, or using java directly
 
