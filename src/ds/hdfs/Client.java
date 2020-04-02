@@ -45,8 +45,8 @@ public class Client {
 
         public void writeBlock(Block block) throws IOException, RuntimeException {
             int offset = block.getBlockInfo().getIndex() * config.BLOCK_SIZE_BYTES;
-
-            randomAccessFile.write(block.getContent().toByteArray(), offset, block.getBlockInfo().getBlockSize());
+            randomAccessFile.seek(offset);
+            randomAccessFile.write(block.getContent().toByteArray());
 
         }
 
@@ -164,11 +164,8 @@ public class Client {
                             if (retrievedBlock.isInitialized()) {
                                 clientFile.writeBlock(retrievedBlock);
 
-                                if (blocksSeen.contains(blockLocation.getBlockInfo())) {
-                                    bytesRetrievedSuccessfully +=blockLocation.getBlockInfo().getBlockSize();
-                                    blocksSeen.add(blockLocation.getBlockInfo());
-                                }
-
+                                bytesRetrievedSuccessfully +=blockLocation.getBlockInfo().getBlockSize();
+                                blocksSeen.add(blockLocation.getBlockInfo());
                             } else {
                                 throw new RuntimeException("Error retrieving block from DataNode");
                             }
@@ -188,8 +185,6 @@ public class Client {
                         responseWithBlockLocationMapping.getFileInfo().getSize()) {
                     throw new RuntimeException("Not all blocks were successfully retrieved.");
                 }
-
-
             }
             else {
                 logger.log(Level.WARNING, "Remote File: " + remoteFile + " was not found, nothing done.");
