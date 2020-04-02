@@ -58,7 +58,7 @@ public class BlockStore {
             for (File file : storeDirectory) {
                 try {
                     FileInputStream inputStream = new FileInputStream(file);
-                    Block block = Block.parseDelimitedFrom(inputStream);
+                    Block block = Block.parseFrom(inputStream);
                     blockMap.put(block.getBlockInfo(), block);
                 } catch (IOException e) {
                     // TODO more detailed error handling
@@ -70,6 +70,13 @@ public class BlockStore {
             System.out.println("Datanode: no files available in block store");
             System.out.println("path: " + STORE_PATH);
         }
+
+        print();
     }
 
+    public void print() {
+        blockMap.forEach((blockMetadata, block) -> {
+            System.out.println(block + "\n");
+        });
+    }
 }

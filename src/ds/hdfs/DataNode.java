@@ -7,6 +7,7 @@ import io.grpc.*;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.NoSuchElementException;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
@@ -34,22 +35,39 @@ public class DataNode extends DataNodeGrpc.DataNodeImplBase {
 
     @java.lang.Override
     public void readBlock(BlockMetadata request, io.grpc.stub.StreamObserver<Block> responseObserver) {
+        logger.log(Level.INFO, "Client requested block: "
+                    + request.getFileName() + "_"
+                    + request.getIndex());
+        Block block = blockStore.getBlock(request);
+
         try {
             responseObserver.onNext(blockStore.getBlock(request));
-        } catch (Exception e) {
-            System.out.println(e);
+            logger.log(Level.INFO, "Sent client block: "
+                    + request.getFileName() + "_"
+                    + request.getIndex());
+        } catch (NoSuchElementException e) {
+            logger.log(Level.WARNING, "Unable to retrieve block from block store", e);
         }
         responseObserver.onCompleted();
     }
 
     @java.lang.Override
     public void writeBlock(Block request, io.grpc.stub.StreamObserver<Status> responseObserver) {
+        logger.log(Level.INFO, "Received block from client: "
+                + request.getBlockInfo().getFileName() + "_"
+                + request.getBlockInfo().getIndex());
+
         try {
             blockStore.persistBlock(request);
             responseObserver.onNext(Status.newBuilder().setSuccess(true).build());
+            logger.log(Level.INFO, "Successfully persisted block: "
+                    + request.getBlockInfo().getFileName() + "_"
+                    + request.getBlockInfo().getIndex());
         } catch (IOException e) {
-            System.out.println(e);
             responseObserver.onNext(Status.newBuilder().setSuccess(false).build());
+            logger.log(Level.INFO, "Failed to persisted block: "
+                    + request.getBlockInfo().getFileName() + "_"
+                    + request.getBlockInfo().getIndex(), e);
         }
         responseObserver.onCompleted();
     }

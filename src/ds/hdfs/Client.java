@@ -44,7 +44,6 @@ public class Client {
         }
 
         public void writeBlock(Block block) throws IOException, RuntimeException {
-
             int offset = block.getBlockInfo().getIndex() * config.BLOCK_SIZE_BYTES;
 
             randomAccessFile.write(block.getContent().toByteArray(), offset, block.getBlockInfo().getBlockSize());
@@ -52,7 +51,6 @@ public class Client {
         }
 
         public Block readBlock(BlockMetadata blockMetadata) throws IOException {
-
             int offset = blockMetadata.getIndex() * config.BLOCK_SIZE_BYTES;
 
             byte[] tempDataBuffer = new byte[blockMetadata.getBlockSize()];
