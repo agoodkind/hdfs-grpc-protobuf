@@ -148,9 +148,12 @@ public class DataNode extends DataNodeGrpc.DataNodeImplBase {
                 System.err.println("");
                 System.err.println("\thelp                    \tDisplay this message.");
                 System.exit(1);
+                return;
+            }
+            else {
+                config = Config.readConfig(args[0]);
             }
 
-            config = Config.readConfig(args[1]);
         } else {
             config = Config.readConfig("config/default_config.json");
         }
